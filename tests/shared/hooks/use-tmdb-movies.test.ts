@@ -7,7 +7,7 @@ import {
   useSearchMovies,
   useMovieDetails,
   useGenres,
-} from "./use-tmdb-movies";
+} from "@/shared/hooks/use-tmdb-movies";
 
 // Mock do cliente HTTP
 vi.mock("@/shared/api/http-client", () => ({

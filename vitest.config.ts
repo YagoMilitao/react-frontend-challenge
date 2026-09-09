@@ -7,12 +7,12 @@ export default mergeConfig(
     test: {
       environment: "jsdom",
       globals: true,
-      setupFiles: ["./src/test/setup.ts"],
+      setupFiles: ["./tests/setup.ts"],
       css: true,
       coverage: {
         provider: "v8",
         reporter: ["text", "html"],
-        exclude: ["src/test/**", "**/*.d.ts", "**/*.config.*"],
+        exclude: ["tests/**", "**/*.d.ts", "**/*.config.*"],
       },
     },
   }),

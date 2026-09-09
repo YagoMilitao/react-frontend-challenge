@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { debounce } from "./debounce";
+import { debounce } from "@/shared/lib/debounce";
 
 describe("debounce", () => {
   it("delays function execution", async () => {

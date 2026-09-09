@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { getImageUrl, getYouTubeUrl } from "./image-url";
+import { getImageUrl, getYouTubeUrl } from "@/shared/lib/image-url";
 
 // Mock env
 vi.mock("@/shared/config/env", () => ({

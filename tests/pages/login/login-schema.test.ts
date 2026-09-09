@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { loginSchema } from "./login-page";
+import { loginSchema } from "@/pages/login/login-page";
 
 describe("loginSchema", () => {
   it("aceita e-mail válido e senha com 6+ caracteres", () => {
