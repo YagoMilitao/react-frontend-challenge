@@ -6,7 +6,8 @@
  * @param delayMs Delay em milissegundos (padrão 300ms)
  * @returns Função debounced que cancela pendências se chamada novamente
  */
-export function debounce<T extends (...args: unknown[]) => unknown>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- constraint precisa aceitar qualquer assinatura de função concreta
+export function debounce<T extends (...args: any[]) => unknown>(
   func: T,
   delayMs = 300,
 ): (...args: Parameters<T>) => void {
