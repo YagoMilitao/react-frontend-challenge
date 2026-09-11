@@ -1,88 +1,176 @@
-# ⚛️ Desafio React Frontend
+<a id="readme-top"></a>
 
-Bem-vindo ao repositório de avaliação técnica para a vaga de **Desenvolvedor React Pleno**.
+<div align="center">
 
-Este não é apenas um teste de codificação; é uma oportunidade para você demonstrar como estrutura aplicações escaláveis, toma decisões arquiteturais e prioriza a experiência do usuário.
+# 🎬 CineDash
 
-Estamos buscando profissionais que entendam que "fazer funcionar" é apenas o primeiro passo. O nosso foco está também em: **Manutenibilidade, Performance e Boas Práticas.**
+Dashboard de curadoria e descoberta de filmes.
 
----
+[![CI](https://github.com/YagoMilitao/react-frontend-challenge/actions/workflows/ci.yml/badge.svg)](https://github.com/YagoMilitao/react-frontend-challenge/actions/workflows/ci.yml)
+![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5-646CFF?logo=vite&logoColor=white)
+![TanStack Query](https://img.shields.io/badge/TanStack_Query-5-FF4154?logo=reactquery&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-4-443E38)
+![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white)
+![Vitest](https://img.shields.io/badge/Vitest-tested-6E9F18?logo=vitest&logoColor=white)
 
-## 🎯 O Objetivo
+[Ver demo](#) · [Reportar bug](https://github.com/YagoMilitao/react-frontend-challenge/issues) · [Documentação de arquitetura](./ARCHITECTURE.md)
 
-O desafio consiste em desenvolver uma aplicação Front-end que consuma uma API pública, focando na criação de interfaces ricas (Dashboards, Tabelas, Filtros) e na gestão eficiente de estado e dados assíncronos.
+</div>
 
-### 📂 Escolha sua Missão
+<img src="./docs/screenshots/discover.jpg" alt="Tela de descoberta do CineDash" width="100%" />
 
-Você tem a liberdade de escolher **um** dos dois desafios abaixo para implementar. Ambos possuem o mesmo peso e complexidade técnica. Escolha aquele com o qual você se sentir mais criativo:
+<details>
+  <summary>Sumário</summary>
+  <ol>
+    <li><a href="#sobre-o-projeto">Sobre o projeto</a></li>
+    <li><a href="#stack">Stack</a></li>
+    <li><a href="#screenshots">Screenshots</a></li>
+    <li><a href="#como-rodar">Como rodar</a></li>
+    <li><a href="#testes">Testes</a></li>
+    <li><a href="#arquitetura">Arquitetura</a></li>
+    <li><a href="#deploy">Deploy</a></li>
+    <li><a href="#roadmap">Roadmap / pendências</a></li>
+    <li><a href="#contato">Contato</a></li>
+    <li><a href="#agradecimentos">Agradecimentos</a></li>
+  </ol>
+</details>
 
-- **[Opção A: CineDash (Filmes)](./cases/01-cinedash.md)** – Crie um dashboard analítico para curadoria de cinema.
-- **[Opção B: Libris (Livros)](./cases/02-libris.md)** – Desenvolva um gerenciador de biblioteca pessoal e estante virtual.
+## Sobre o projeto
 
----
+**CineDash** é um dashboard interno fictício para curadores de um serviço de streaming: buscar, filtrar e descobrir filmes (via API do TMDB), montar uma watchlist pessoal e ver detalhes completos — elenco, sinopse e trailer — antes de decidir o que entra no catálogo.
 
-## 🛠 Tech Stack Obrigatória
+**Funcionalidades:**
 
-Para alinhar com a nossa stack atual e garantir uma avaliação justa, exigimos o uso das seguintes tecnologias. **Por favor, não utilize alternativas (ex: Redux ou Context API para estado global complexo) a menos que justificável no seu README.**
+- 🔐 Autenticação simulada (Zod + sessão persistida)
+- 🔎 Busca com debounce, filtros por gênero/ano/nota e paginação
+- ⭐ Watchlist persistida, com tabela ordenável (TanStack Table)
+- 🎞️ Página de detalhes com elenco, sinopse e trailer
+- 🌗 Tema claro/escuro persistido
+- 🔔 Feedback visual completo: skeletons, estados de erro e toasts
 
-- **Core:** React 18+, TypeScript (Strict), Vite.
-- **Server State & Cache:** TanStack Query.
-- **Client State:** Zustand.
-- **Routing:** TanStack Router (Preferencial) ou React Router v6 (com Data Loaders).
-- **UI Components:** Shadcn/ui + TailwindCSS.
-- **Formulários:** React Hook Form ou TanStack Form + Zod (validação).
-- **Testes:** Vitest + React Testing Library.
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 
-> **Diferencial:** Implementação de `TanStack Table` para listagens complexas.
+## Stack
 
----
+| Camada | Tecnologia |
+|---|---|
+| Core | React 18 · TypeScript (strict) · Vite |
+| Server state | TanStack Query (cache, prefetch, retry) |
+| Client state | Zustand (com `persist` seletivo) |
+| Roteamento | TanStack Router |
+| UI | Shadcn/ui (Radix) + TailwindCSS |
+| Formulários | React Hook Form + Zod |
+| Listagem complexa | TanStack Table |
+| Testes | Vitest + React Testing Library |
 
-## 🧠 Critérios de Avaliação (O que olhamos)
+Nenhuma alternativa à stack obrigatória foi usada — ver justificativas de cada decisão em [ARCHITECTURE.md](./ARCHITECTURE.md).
 
-Seu código será revisado como se fosse um Pull Request real para a nossa codebase de produção.
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 
-### 1. Arquitetura e Organização
+## Screenshots
 
-- Uso de **Feature-Sliced Design (FSD)**, Clean Architecture ou uma estrutura modular sólida.
-- Separação clara entre UI (Componentes), Lógica (Hooks) e Dados (Services/Adapters).
-- Código limpo, legível e seguindo princípios SOLID.
+<table>
+  <tr>
+    <td><img src="./docs/screenshots/login.png" alt="Login" width="100%" /><p align="center"><sub>Login</sub></p></td>
+    <td><img src="./docs/screenshots/watchlist.png" alt="Watchlist" width="100%" /><p align="center"><sub>Minha lista</sub></p></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="./docs/screenshots/details.jpg" alt="Detalhes do filme" width="100%" /><p align="center"><sub>Detalhes do filme (banner com imagem de fundo, elenco e trailer)</sub></p></td>
+  </tr>
+  <tr>
+    <td colspan="2"><img src="./docs/screenshots/watchlist-dark.png" alt="Tema escuro" width="100%" /><p align="center"><sub>Tema escuro</sub></p></td>
+  </tr>
+</table>
 
-### 2. Qualidade Técnica
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 
-- Domínio do **TypeScript** (evitar `any`, tipagem correta de generics e props).
-- Uso correto do **TanStack Query** (cache keys, invalidation, prefetching).
-- Tratamento de erros e estados de loading (Skeletons, Error Boundaries).
-- Performance (memorização onde necessário, debouncing em buscas).
+## Como rodar
 
-### 3. Testes e Confiabilidade
+```bash
+git clone https://github.com/YagoMilitao/react-frontend-challenge.git
+cd react-frontend-challenge
+npm install
+cp .env.example .env   # preencha VITE_TMDB_API_READ_TOKEN
+npm run dev
+```
 
-- Não buscamos 100% de cobertura, mas sim **testes significativos**.
-- Testes unitários em hooks complexos e utilitários.
-- Testes de integração nos fluxos principais (ex: Adicionar item à lista, filtrar tabela).
+Login: qualquer e-mail válido + senha com 6+ caracteres (não há backend real).
 
-### 4. Documentação e Git
+Passo a passo completo (obtenção do token do TMDB, todos os comandos disponíveis, o que foi implementado) em **[INSTRUCTIONS.md](./INSTRUCTIONS.md)**.
 
-- Histórico de commits organizado.
-- Arquivo `INSTRUCTIONS.md` com instruções claras de como rodar o projeto e qual projeto foi escolhido.
-- Arquivo `ARCHITECTURE.md` explicando suas decisões técnicas (Por que usou X? Como resolveu Y?).
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 
----
+## Testes
 
-## 🚀 Como entregar
+```bash
+npm test              # suíte completa (Vitest + RTL)
+npm run test:coverage # com relatório de cobertura
+npm run lint           # ESLint
+```
 
-1.  Faça um **fork** deste repositório para a sua própria conta do GitHub.
-2.  Desenvolva sua solução em uma branch separada (ex: `feature/cinedash-impl` ou `feature/libris-impl`).
-3.  Quando finalizar, abra um **Pull Request** da sua branch de desenvolvimento para a branch `main` do **seu** repositório forkado. **Atenção: Não abra o PR para o repositório original da empresa.**
-4.  No corpo do PR, utilize o template fornecido e inclua uma breve descrição do que foi feito, além do projeto escolhido.
-5.  Envie o link do seu Pull Request (ou do repositório) para o recrutador responsável.
+108 testes cobrindo hooks de dados, stores, componentes e os fluxos de integração principais (busca → filtro → paginação; adicionar/remover da watchlist; navegação para detalhes). Roda automaticamente em CI a cada push/PR — veja o badge no topo.
 
----
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 
-## ⏳ Prazo e Escopo
+## Arquitetura
 
-Sabemos que este é um desafio complexo.
+Organizado em [Feature-Sliced Design](https://feature-sliced.design) (`app → pages → widgets → features → entities → shared`), com TanStack Query cuidando de todo estado vindo da API (cache keys estruturadas, prefetch no hover dos cards, `keepPreviousData` na paginação) e Zustand só para estado de cliente (sessão, watchlist, tema, filtros — cada um com uma decisão explícita de persistir ou não).
 
-- **Prazo para entrega:** Você terá o prazo de 7 dias corridos para realização do desafio.
-- **Faltou tempo?** Se não conseguir entregar tudo, **priorize a qualidade sobre a quantidade**. É melhor entregar uma funcionalidade perfeitamente arquitetada e testada do que três funcionalidades quebradas. Documente o que faltou no seu README.
+Decisões detalhadas, desafios reais encontrados com a API do TMDB e o que seria feito diferente com mais tempo: **[ARCHITECTURE.md](./ARCHITECTURE.md)**.
 
-**Boa sorte! Estamos ansiosos para ver seu código.** 🚀
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
+
+## Deploy
+
+O projeto é uma SPA (Vite + TanStack Router). Qualquer host estático serve, mas **é necessário configurar um rewrite para `index.html`**, senão recarregar a página em uma rota interna (ex.: `/watchlist`) resulta em 404 do próprio host.
+
+<details>
+<summary>Vercel</summary>
+
+```json
+// vercel.json
+{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+```
+</details>
+
+<details>
+<summary>Netlify</summary>
+
+```
+# public/_redirects
+/*  /index.html  200
+```
+</details>
+
+Lembre-se de configurar `VITE_TMDB_API_READ_TOKEN` nas variáveis de ambiente do host.
+
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
+
+## Roadmap / pendências
+
+- [ ] Code-splitting por rota (`React.lazy`) — bundle atual passa do aviso de 500kb do Vite
+- [ ] Testes de acessibilidade automatizados (axe)
+- [ ] E2E formal (Playwright) cobrindo o fluxo crítico ponta a ponta
+
+Lista completa e o porquê de cada item em [INSTRUCTIONS.md](./INSTRUCTIONS.md#o-que-ficou-de-fora--próximos-passos).
+
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
+
+## Contato
+
+Yago Militão — [github.com/YagoMilitao](https://github.com/YagoMilitao)
+
+Link do projeto: [github.com/YagoMilitao/react-frontend-challenge](https://github.com/YagoMilitao/react-frontend-challenge)
+
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
+
+## Agradecimentos
+
+- Dados de filmes fornecidos pela [API do TMDB](https://www.themoviedb.org/) — este produto usa a API do TMDB, mas não é endossado ou certificado pelo TMDB.
+- Componentes de UI baseados em [shadcn/ui](https://ui.shadcn.com/) e [Radix UI](https://www.radix-ui.com/).
+- Ícones por [Lucide](https://lucide.dev/).
+- Estrutura deste README inspirada no [Best-README-Template](https://github.com/othneildrew/Best-README-Template).
+
+<p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
