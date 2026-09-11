@@ -6,10 +6,12 @@ import { env } from "@/shared/config/env";
  *
  * @param path Poster/backdrop path retornado pela API (ex: "/kXfqcdQKsToO0OUXHcrrKcHMX4.jpg")
  * @param size Tamanho desejado (padrão: "w500")
- * @returns URL completa da imagem
+ * @returns URL completa da imagem, ou `null` se não houver imagem — quem chama
+ * decide como renderizar esse caso (ex.: `<ImagePlaceholder />`), em vez de
+ * apontar para um arquivo estático que precisaria existir no projeto.
  */
-export function getImageUrl(path: string | null, size = "w500"): string {
-  if (!path) return "/placeholder-movie.svg"; // Fallback se não houver imagem
+export function getImageUrl(path: string | null, size = "w500"): string | null {
+  if (!path) return null;
 
   return `${env.tmdbImageBaseUrl}/${size}${path}`;
 }

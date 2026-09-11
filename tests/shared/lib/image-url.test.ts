@@ -23,9 +23,9 @@ describe("image-url utils", () => {
     );
   });
 
-  it("returns placeholder when path is null", () => {
+  it("retorna null quando não há path", () => {
     const url = getImageUrl(null);
-    expect(url).toBe("/placeholder-movie.svg");
+    expect(url).toBeNull();
   });
 
   it("constructs YouTube URL from video key", () => {

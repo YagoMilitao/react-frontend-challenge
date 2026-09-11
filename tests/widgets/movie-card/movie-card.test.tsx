@@ -51,10 +51,19 @@ describe("MovieCard", () => {
     expect(screen.getByText("8.5")).toBeInTheDocument();
   });
 
-  it("usa a imagem de placeholder quando não há poster", () => {
+  it("exibe o placeholder visual quando não há poster", () => {
     renderWithQueryClient(<MovieCard movie={buildMovie({ poster_path: null })} />);
 
-    expect(screen.getByRole("img")).toHaveAttribute("src", "/placeholder-movie.svg");
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+  });
+
+  it("exibe a imagem do poster quando disponível", () => {
+    renderWithQueryClient(<MovieCard movie={buildMovie({ poster_path: "/poster.jpg" })} />);
+
+    expect(screen.getByRole("img")).toHaveAttribute(
+      "src",
+      expect.stringContaining("/poster.jpg"),
+    );
   });
 
   it("exibe travessão quando não há data de lançamento", () => {
