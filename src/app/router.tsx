@@ -10,6 +10,7 @@ import { AppNav } from "@/widgets/app-nav";
 import { LoginPage } from "@/pages/login/login-page";
 import { DiscoverPage } from "@/pages/discover/discover-page";
 import { WatchlistPage } from "@/pages/watchlist/watchlist-page";
+import { MovieDetailsPage } from "@/pages/movie-details/movie-details-page";
 
 /**
  * Guarda de rota: como a autenticação é simulada em client-side (sem backend),
@@ -68,9 +69,15 @@ const watchlistRoute = createRoute({
   component: WatchlistPage,
 });
 
+const movieDetailsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/movie/$id",
+  component: MovieDetailsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   loginRoute,
-  appLayoutRoute.addChildren([indexRoute, discoverRoute, watchlistRoute]),
+  appLayoutRoute.addChildren([indexRoute, discoverRoute, watchlistRoute, movieDetailsRoute]),
 ]);
 
 export const router = createRouter({ routeTree });

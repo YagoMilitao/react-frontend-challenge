@@ -1,13 +1,30 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { Movie } from "@/entities/movie";
+import type { Movie, MovieDetails } from "@/entities/movie";
+
+type WatchlistCandidate = Movie | MovieDetails;
 
 interface WatchlistState {
   movies: Movie[];
-  addMovie: (movie: Movie) => void;
+  addMovie: (movie: WatchlistCandidate) => void;
   removeMovie: (movieId: number) => void;
-  toggleMovie: (movie: Movie) => void;
+  toggleMovie: (movie: WatchlistCandidate) => void;
   isInWatchlist: (movieId: number) => boolean;
+}
+
+/**
+ * A listagem (Movie) traz `genre_ids`; o endpoint de detalhes do TMDB (MovieDetails)
+ * não traz esse campo, só `genres` (objetos {id, name}). Um filme pode entrar na
+ * watchlist a partir de qualquer uma das duas telas, então normalizamos aqui para
+ * sempre guardar `genre_ids`, que é o que a tabela da watchlist espera.
+ */
+function normalizeMovie(movie: WatchlistCandidate): Movie {
+  const genres = (movie as MovieDetails).genres;
+  const genre_ids = Array.isArray(genres)
+    ? genres.map((genre) => genre.id)
+    : ((movie as Movie).genre_ids ?? []);
+
+  return { ...movie, genre_ids };
 }
 
 /**
@@ -23,7 +40,7 @@ export const useWatchlistStore = create<WatchlistState>()(
         set((state) =>
           state.movies.some((item) => item.id === movie.id)
             ? state
-            : { movies: [...state.movies, movie] },
+            : { movies: [...state.movies, normalizeMovie(movie)] },
         ),
       removeMovie: (movieId) =>
         set((state) => ({ movies: state.movies.filter((item) => item.id !== movieId) })),

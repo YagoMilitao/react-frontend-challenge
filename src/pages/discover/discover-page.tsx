@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { useTrendingMovies, usePopularMovies, useSearchMovies } from "@/entities/movie";
+import type { Movie } from "@/entities/movie";
 import { DiscoverFilterPanel, useDiscoverFilterStore } from "@/features/discover-filter";
 import { SearchInput } from "@/features/search-movies";
 import { DiscoverHeader } from "@/widgets/discover-header";
@@ -8,6 +10,7 @@ import { MovieGrid } from "@/widgets/movie-grid";
 const MIN_SEARCH_LENGTH = 3;
 
 export function DiscoverPage() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
 
@@ -40,6 +43,10 @@ export function DiscoverPage() {
     activeQuery = popularQuery;
   }
 
+  function handleMovieClick(movie: Movie) {
+    navigate({ to: "/movie/$id", params: { id: String(movie.id) } });
+  }
+
   return (
     <div className="container flex flex-col gap-6 py-8">
       <DiscoverHeader />
@@ -56,6 +63,7 @@ export function DiscoverPage() {
             page={page}
             totalPages={activeQuery.data?.total_pages}
             onPageChange={setPage}
+            onMovieClick={handleMovieClick}
           />
         </div>
       </div>

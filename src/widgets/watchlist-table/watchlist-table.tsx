@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   type ColumnDef,
   type SortingState,
@@ -79,7 +80,15 @@ export function WatchlistTable() {
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           />
         ),
-        cell: ({ getValue }) => <span className="font-medium">{getValue<string>()}</span>,
+        cell: ({ getValue, row }) => (
+          <Link
+            to="/movie/$id"
+            params={{ id: String(row.original.id) }}
+            className="font-medium hover:underline"
+          >
+            {getValue<string>()}
+          </Link>
+        ),
       },
       {
         accessorKey: "genreLabel",

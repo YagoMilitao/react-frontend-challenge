@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
-import type { Movie } from "@/entities/movie";
+import type { Movie, MovieDetails } from "@/entities/movie";
 
 function buildMovie(overrides: Partial<Movie> = {}): Movie {
   return {
@@ -17,6 +17,34 @@ function buildMovie(overrides: Partial<Movie> = {}): Movie {
     popularity: 10,
     adult: false,
     original_language: "en",
+    ...overrides,
+  };
+}
+
+function buildMovieDetails(overrides: Partial<MovieDetails> = {}): MovieDetails {
+  return {
+    id: 1,
+    title: "Filme Detalhado",
+    original_title: "Detailed Movie",
+    overview: "",
+    poster_path: null,
+    backdrop_path: null,
+    release_date: "2020-01-01",
+    vote_average: 7,
+    vote_count: 10,
+    popularity: 10,
+    adult: false,
+    original_language: "en",
+    budget: 0,
+    revenue: 0,
+    runtime: 100,
+    status: "Released",
+    tagline: "",
+    genres: [{ id: 28, name: "Ação" }],
+    production_companies: [],
+    spoken_languages: [],
+    homepage: null,
+    imdb_id: null,
     ...overrides,
   };
 }
@@ -74,5 +102,11 @@ describe("watchlist-store", () => {
     store.addMovie(buildMovie({ id: 2, title: "B" }));
 
     expect(useWatchlistStore.getState().movies.map((m) => m.id)).toEqual([1, 2]);
+  });
+
+  it("deriva genre_ids a partir de genres ao adicionar um MovieDetails (endpoint de detalhes não envia genre_ids)", () => {
+    useWatchlistStore.getState().addMovie(buildMovieDetails());
+
+    expect(useWatchlistStore.getState().movies[0].genre_ids).toEqual([28]);
   });
 });

@@ -2,6 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRoute,
+  createRouter,
+} from "@tanstack/react-router";
 import { DiscoverPage } from "@/pages/discover/discover-page";
 import { useDiscoverFilterStore } from "@/features/discover-filter";
 import type { Movie, PaginatedResponse } from "@/shared/api/tmdb-types";
@@ -36,12 +43,28 @@ function buildMovies(titles: string[], page = 1, totalPages = 1): PaginatedRespo
 }
 
 function renderPage() {
+  const rootRoute = createRootRoute();
+  const discoverRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/",
+    component: DiscoverPage,
+  });
+  const movieDetailsRoute = createRoute({
+    getParentRoute: () => rootRoute,
+    path: "/movie/$id",
+    component: function MovieDetailsStub() {
+      const { id } = movieDetailsRoute.useParams();
+      return <div>Detalhes do filme {id}</div>;
+    },
+  });
+  const routeTree = rootRoute.addChildren([discoverRoute, movieDetailsRoute]);
+  const router = createRouter({ routeTree, history: createMemoryHistory({ initialEntries: ["/"] }) });
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <DiscoverPage />
+      <RouterProvider router={router} />
     </QueryClientProvider>,
   );
 }
@@ -129,5 +152,15 @@ describe("DiscoverPage", () => {
 
     expect(await screen.findByText("Popular Filtrado")).toBeInTheDocument();
     expect(screen.getByText("Página 1 de 1")).toBeInTheDocument();
+  });
+
+  it("navega para os detalhes do filme ao clicar em um card", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await screen.findByText("Trending A");
+    await user.click(screen.getByRole("button", { name: /Trending A/ }));
+
+    expect(await screen.findByText("Detalhes do filme 1")).toBeInTheDocument();
   });
 });

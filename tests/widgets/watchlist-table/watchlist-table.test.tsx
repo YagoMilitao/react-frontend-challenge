@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  RouterProvider,
+  createMemoryHistory,
+  createRootRoute,
+  createRouter,
+} from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { WatchlistTable } from "@/widgets/watchlist-table/watchlist-table";
 import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
@@ -38,8 +44,17 @@ function buildMovie(overrides: Partial<Movie> = {}): Movie {
 }
 
 function renderWithQueryClient(ui: ReactNode) {
+  const rootRoute = createRootRoute({ component: () => ui });
+  const router = createRouter({
+    routeTree: rootRoute,
+    history: createMemoryHistory({ initialEntries: ["/"] }),
+  });
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>,
+  );
 }
 
 describe("WatchlistTable", () => {
@@ -47,10 +62,10 @@ describe("WatchlistTable", () => {
     useWatchlistStore.setState({ movies: [] });
   });
 
-  it("exibe estado vazio quando não há filmes na lista", () => {
+  it("exibe estado vazio quando não há filmes na lista", async () => {
     renderWithQueryClient(<WatchlistTable />);
 
-    expect(screen.getByText("Sua lista está vazia")).toBeInTheDocument();
+    expect(await screen.findByText("Sua lista está vazia")).toBeInTheDocument();
   });
 
   it("lista os filmes da watchlist com o gênero resolvido", async () => {

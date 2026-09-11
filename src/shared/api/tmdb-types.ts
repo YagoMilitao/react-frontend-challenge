@@ -20,7 +20,12 @@ export interface Movie {
   media_type?: string;
 }
 
-export interface MovieDetails extends Movie {
+/**
+ * O endpoint de detalhes (/movie/{id}) não retorna `genre_ids` — só `genres`
+ * (objetos {id, name}). Omitimos o campo aqui para não afirmar algo que a API
+ * não envia; quem precisar de ids deve derivá-los a partir de `genres`.
+ */
+export interface MovieDetails extends Omit<Movie, "genre_ids"> {
   budget: number;
   revenue: number;
   runtime: number;

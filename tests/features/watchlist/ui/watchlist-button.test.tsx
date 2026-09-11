@@ -71,4 +71,17 @@ describe("WatchlistButton", () => {
 
     expect(parentClicked).toBe(false);
   });
+
+  it("exibe o texto quando withLabel é true", () => {
+    render(<WatchlistButton movie={buildMovie()} withLabel />);
+
+    expect(screen.getByText("Adicionar à minha lista")).toBeInTheDocument();
+  });
+
+  it("troca o texto para 'Na minha lista' quando já está adicionado", () => {
+    useWatchlistStore.getState().addMovie(buildMovie());
+    render(<WatchlistButton movie={buildMovie()} withLabel />);
+
+    expect(screen.getByText("Na minha lista")).toBeInTheDocument();
+  });
 });
