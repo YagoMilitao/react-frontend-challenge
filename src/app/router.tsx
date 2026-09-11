@@ -11,6 +11,7 @@ import { LoginPage } from "@/pages/login/login-page";
 import { DiscoverPage } from "@/pages/discover/discover-page";
 import { WatchlistPage } from "@/pages/watchlist/watchlist-page";
 import { MovieDetailsPage } from "@/pages/movie-details/movie-details-page";
+import { NotFoundPage } from "@/pages/not-found/not-found-page";
 
 /**
  * Guarda de rota: como a autenticação é simulada em client-side (sem backend),
@@ -80,7 +81,10 @@ const routeTree = rootRoute.addChildren([
   appLayoutRoute.addChildren([indexRoute, discoverRoute, watchlistRoute, movieDetailsRoute]),
 ]);
 
-export const router = createRouter({ routeTree });
+export const router = createRouter({
+  routeTree,
+  defaultNotFoundComponent: NotFoundPage,
+});
 
 declare module "@tanstack/react-router" {
   interface Register {
