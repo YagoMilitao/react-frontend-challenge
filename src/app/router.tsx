@@ -6,8 +6,10 @@ import {
   redirect,
 } from "@tanstack/react-router";
 import { useAuthStore } from "@/features/auth/model/auth-store";
+import { AppNav } from "@/widgets/app-nav";
 import { LoginPage } from "@/pages/login/login-page";
 import { DiscoverPage } from "@/pages/discover/discover-page";
+import { WatchlistPage } from "@/pages/watchlist/watchlist-page";
 
 /**
  * Guarda de rota: como a autenticação é simulada em client-side (sem backend),
@@ -31,21 +33,45 @@ const loginRoute = createRoute({
   component: LoginPage,
 });
 
-const indexRoute = createRoute({
+/**
+ * Layout das rotas protegidas: aplica a guarda de autenticação uma única vez
+ * e renderiza a navegação (Descobrir / Minha lista / tema / logout) ao redor
+ * de todas as páginas internas.
+ */
+const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/",
+  id: "app-layout",
   beforeLoad: requireAuth,
+  component: () => (
+    <div className="min-h-screen bg-background">
+      <AppNav />
+      <Outlet />
+    </div>
+  ),
+});
+
+const indexRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/",
   component: DiscoverPage,
 });
 
 const discoverRoute = createRoute({
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => appLayoutRoute,
   path: "/discover",
-  beforeLoad: requireAuth,
   component: DiscoverPage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, loginRoute, discoverRoute]);
+const watchlistRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: "/watchlist",
+  component: WatchlistPage,
+});
+
+const routeTree = rootRoute.addChildren([
+  loginRoute,
+  appLayoutRoute.addChildren([indexRoute, discoverRoute, watchlistRoute]),
+]);
 
 export const router = createRouter({ routeTree });
 

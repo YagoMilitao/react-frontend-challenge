@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MovieGrid } from "@/widgets/movie-grid/movie-grid";
+import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
 import type { Movie } from "@/entities/movie";
 
 function buildMovie(overrides: Partial<Movie> = {}): Movie {
@@ -24,6 +25,10 @@ function buildMovie(overrides: Partial<Movie> = {}): Movie {
 }
 
 describe("MovieGrid", () => {
+  beforeEach(() => {
+    useWatchlistStore.setState({ movies: [] });
+  });
+
   it("exibe skeletons durante o carregamento", () => {
     const { container } = render(
       <MovieGrid movies={[]} isLoading page={1} onPageChange={vi.fn()} />,

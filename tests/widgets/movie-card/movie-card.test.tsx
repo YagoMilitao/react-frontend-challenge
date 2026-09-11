@@ -1,7 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MovieCard } from "@/widgets/movie-card/movie-card";
+import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
 import type { Movie } from "@/entities/movie";
 
 function buildMovie(overrides: Partial<Movie> = {}): Movie {
@@ -24,6 +25,10 @@ function buildMovie(overrides: Partial<Movie> = {}): Movie {
 }
 
 describe("MovieCard", () => {
+  beforeEach(() => {
+    useWatchlistStore.setState({ movies: [] });
+  });
+
   it("exibe título, ano e nota do filme", () => {
     render(<MovieCard movie={buildMovie()} />);
 
@@ -47,7 +52,9 @@ describe("MovieCard", () => {
   it("não é clicável quando nenhum onClick é informado", () => {
     render(<MovieCard movie={buildMovie()} />);
 
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    // o botão de watchlist continua presente; o card em si não vira role="button"
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button")).toHaveAccessibleName("Adicionar à minha lista");
   });
 
   it("chama onClick com o filme ao clicar no card", async () => {
@@ -55,7 +62,7 @@ describe("MovieCard", () => {
     const onClick = vi.fn();
     render(<MovieCard movie={buildMovie()} onClick={onClick} />);
 
-    await user.click(screen.getByRole("button"));
+    await user.click(screen.getByRole("button", { name: /Filme Teste/ }));
 
     expect(onClick).toHaveBeenCalledWith(buildMovie());
   });
@@ -65,10 +72,20 @@ describe("MovieCard", () => {
     const onClick = vi.fn();
     render(<MovieCard movie={buildMovie()} onClick={onClick} />);
 
-    const card = screen.getByRole("button");
+    const card = screen.getByRole("button", { name: /Filme Teste/ });
     card.focus();
     await user.keyboard("{Enter}");
 
     expect(onClick).toHaveBeenCalledWith(buildMovie());
+  });
+
+  it("o clique no botão de watchlist não dispara o onClick do card", async () => {
+    const user = userEvent.setup();
+    const onClick = vi.fn();
+    render(<MovieCard movie={buildMovie()} onClick={onClick} />);
+
+    await user.click(screen.getByRole("button", { name: "Adicionar à minha lista" }));
+
+    expect(onClick).not.toHaveBeenCalled();
   });
 });

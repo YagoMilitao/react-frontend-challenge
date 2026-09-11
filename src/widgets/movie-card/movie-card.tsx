@@ -3,6 +3,7 @@ import type { Movie } from "@/entities/movie";
 import { getImageUrl } from "@/shared/lib/image-url";
 import { Card, CardContent } from "@/shared/ui/card";
 import { cn } from "@/shared/lib/utils";
+import { WatchlistButton } from "@/features/watchlist";
 
 interface MovieCardProps {
   movie: Movie;
@@ -31,13 +32,14 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
         onClick && "cursor-pointer hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
       )}
     >
-      <div className="aspect-[2/3] w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
         <img
           src={getImageUrl(movie.poster_path, "w342")}
           alt={movie.title}
           loading="lazy"
           className="h-full w-full object-cover"
         />
+        <WatchlistButton movie={movie} className="absolute right-2 top-2 shadow-md" />
       </div>
       <CardContent className="flex flex-1 flex-col gap-1 p-3">
         <h3 className="line-clamp-2 text-sm font-medium leading-tight" title={movie.title}>

@@ -1,0 +1,74 @@
+import { describe, it, expect, beforeEach } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { WatchlistButton } from "@/features/watchlist/ui/watchlist-button";
+import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
+import type { Movie } from "@/entities/movie";
+
+function buildMovie(overrides: Partial<Movie> = {}): Movie {
+  return {
+    id: 1,
+    title: "Filme Teste",
+    original_title: "Test Movie",
+    overview: "",
+    poster_path: null,
+    backdrop_path: null,
+    release_date: "2020-01-01",
+    vote_average: 7,
+    vote_count: 10,
+    genre_ids: [28],
+    popularity: 10,
+    adult: false,
+    original_language: "en",
+    ...overrides,
+  };
+}
+
+describe("WatchlistButton", () => {
+  beforeEach(() => {
+    useWatchlistStore.setState({ movies: [] });
+  });
+
+  it("indica que o filme não está na lista", () => {
+    render(<WatchlistButton movie={buildMovie()} />);
+
+    expect(screen.getByRole("button", { name: "Adicionar à minha lista" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("adiciona o filme à lista ao clicar", async () => {
+    const user = userEvent.setup();
+    render(<WatchlistButton movie={buildMovie()} />);
+
+    await user.click(screen.getByRole("button", { name: "Adicionar à minha lista" }));
+
+    expect(useWatchlistStore.getState().isInWatchlist(1)).toBe(true);
+  });
+
+  it("remove o filme da lista ao clicar quando já está adicionado", async () => {
+    useWatchlistStore.getState().addMovie(buildMovie());
+    const user = userEvent.setup();
+    render(<WatchlistButton movie={buildMovie()} />);
+
+    await user.click(screen.getByRole("button", { name: "Remover da minha lista" }));
+
+    expect(useWatchlistStore.getState().isInWatchlist(1)).toBe(false);
+  });
+
+  it("não propaga o clique para elementos pai", async () => {
+    const user = userEvent.setup();
+    let parentClicked = false;
+
+    render(
+      <div onClick={() => (parentClicked = true)}>
+        <WatchlistButton movie={buildMovie()} />
+      </div>,
+    );
+
+    await user.click(screen.getByRole("button"));
+
+    expect(parentClicked).toBe(false);
+  });
+});
