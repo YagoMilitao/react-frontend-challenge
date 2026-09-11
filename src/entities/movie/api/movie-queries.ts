@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { tmdbClient } from "@/shared/api/http-client";
 import type { PaginatedResponse } from "@/shared/api/tmdb-types";
 import type { Movie, MovieFilter, MovieGenre } from "../types";
@@ -19,7 +19,7 @@ function buildDiscoverParams(filters?: MovieFilter) {
   return params;
 }
 
-export function useTrendingMovies(page = 1) {
+export function useTrendingMovies(page = 1, enabled = true) {
   return useQuery({
     queryKey: ["movies", "trending", page],
     queryFn: () =>
@@ -27,10 +27,12 @@ export function useTrendingMovies(page = 1) {
         page,
         language: "pt-BR",
       }),
+    enabled,
+    placeholderData: keepPreviousData,
   });
 }
 
-export function usePopularMovies(page = 1, filters?: MovieFilter) {
+export function usePopularMovies(page = 1, filters?: MovieFilter, enabled = true) {
   return useQuery({
     queryKey: ["movies", "popular", page, filters],
     queryFn: () =>
@@ -40,6 +42,8 @@ export function usePopularMovies(page = 1, filters?: MovieFilter) {
         sort_by: "popularity.desc",
         ...buildDiscoverParams(filters),
       }),
+    enabled,
+    placeholderData: keepPreviousData,
   });
 }
 
@@ -55,6 +59,7 @@ export function useSearchMovies(query: string, filters?: MovieFilter, page = 1) 
         ...buildDiscoverParams(filters),
       }),
     enabled: query.length > 2,
+    placeholderData: keepPreviousData,
   });
 }
 

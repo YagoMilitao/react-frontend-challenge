@@ -7,6 +7,7 @@ import { useMovieGridPagination } from "./use-movie-grid-pagination";
 interface MovieGridProps {
   movies: Movie[];
   isLoading: boolean;
+  page: number;
   totalPages?: number;
   onPageChange: (page: number) => void;
   onMovieClick?: (movie: Movie) => void;
@@ -15,12 +16,12 @@ interface MovieGridProps {
 export function MovieGrid({
   movies,
   isLoading,
+  page,
   totalPages = 1,
   onPageChange,
   onMovieClick,
 }: MovieGridProps) {
-  const { page, canGoPrevious, canGoNext, goToPreviousPage, goToNextPage } =
-    useMovieGridPagination(totalPages, onPageChange);
+  const { canGoPrevious, canGoNext } = useMovieGridPagination(page, totalPages);
 
   if (isLoading) {
     return (
@@ -50,13 +51,23 @@ export function MovieGrid({
       </div>
 
       <div className="flex items-center justify-center gap-4">
-        <Button variant="outline" size="sm" onClick={goToPreviousPage} disabled={!canGoPrevious}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(page - 1)}
+          disabled={!canGoPrevious}
+        >
           Anterior
         </Button>
         <span className="text-sm text-muted-foreground">
           Página {page} de {totalPages}
         </span>
-        <Button variant="outline" size="sm" onClick={goToNextPage} disabled={!canGoNext}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onPageChange(page + 1)}
+          disabled={!canGoNext}
+        >
           Próxima
         </Button>
       </div>

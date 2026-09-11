@@ -26,33 +26,48 @@ function buildMovie(overrides: Partial<Movie> = {}): Movie {
 describe("MovieGrid", () => {
   it("exibe skeletons durante o carregamento", () => {
     const { container } = render(
-      <MovieGrid movies={[]} isLoading onPageChange={vi.fn()} />,
+      <MovieGrid movies={[]} isLoading page={1} onPageChange={vi.fn()} />,
     );
 
     expect(container.querySelectorAll(".animate-pulse").length).toBeGreaterThan(0);
   });
 
   it("exibe estado vazio quando não há filmes", () => {
-    render(<MovieGrid movies={[]} isLoading={false} onPageChange={vi.fn()} />);
+    render(<MovieGrid movies={[]} isLoading={false} page={1} onPageChange={vi.fn()} />);
 
     expect(screen.getByText("Nenhum filme encontrado")).toBeInTheDocument();
   });
 
   it("renderiza um card para cada filme", () => {
     const movies = [buildMovie({ id: 1, title: "A" }), buildMovie({ id: 2, title: "B" })];
-    render(<MovieGrid movies={movies} isLoading={false} onPageChange={vi.fn()} />);
+    render(<MovieGrid movies={movies} isLoading={false} page={1} onPageChange={vi.fn()} />);
 
     expect(screen.getByText("A")).toBeInTheDocument();
     expect(screen.getByText("B")).toBeInTheDocument();
   });
 
-  it("avança de página ao clicar em Próxima", async () => {
+  it("exibe a página atual e o total de páginas", () => {
+    render(
+      <MovieGrid
+        movies={[buildMovie()]}
+        isLoading={false}
+        page={2}
+        totalPages={3}
+        onPageChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Página 2 de 3")).toBeInTheDocument();
+  });
+
+  it("chama onPageChange com a próxima página ao clicar em Próxima", async () => {
     const user = userEvent.setup();
     const onPageChange = vi.fn();
     render(
       <MovieGrid
         movies={[buildMovie()]}
         isLoading={false}
+        page={1}
         totalPages={3}
         onPageChange={onPageChange}
       />,
@@ -61,15 +76,52 @@ describe("MovieGrid", () => {
     await user.click(screen.getByRole("button", { name: "Próxima" }));
 
     expect(onPageChange).toHaveBeenCalledWith(2);
-    expect(screen.getByText("Página 2 de 3")).toBeInTheDocument();
+  });
+
+  it("chama onPageChange com a página anterior ao clicar em Anterior", async () => {
+    const user = userEvent.setup();
+    const onPageChange = vi.fn();
+    render(
+      <MovieGrid
+        movies={[buildMovie()]}
+        isLoading={false}
+        page={2}
+        totalPages={3}
+        onPageChange={onPageChange}
+      />,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Anterior" }));
+
+    expect(onPageChange).toHaveBeenCalledWith(1);
   });
 
   it("desabilita o botão Anterior na primeira página", () => {
     render(
-      <MovieGrid movies={[buildMovie()]} isLoading={false} totalPages={3} onPageChange={vi.fn()} />,
+      <MovieGrid
+        movies={[buildMovie()]}
+        isLoading={false}
+        page={1}
+        totalPages={3}
+        onPageChange={vi.fn()}
+      />,
     );
 
     expect(screen.getByRole("button", { name: "Anterior" })).toBeDisabled();
+  });
+
+  it("desabilita o botão Próxima na última página", () => {
+    render(
+      <MovieGrid
+        movies={[buildMovie()]}
+        isLoading={false}
+        page={3}
+        totalPages={3}
+        onPageChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "Próxima" })).toBeDisabled();
   });
 
   it("chama onMovieClick ao clicar em um card", async () => {
@@ -80,6 +132,7 @@ describe("MovieGrid", () => {
       <MovieGrid
         movies={[movie]}
         isLoading={false}
+        page={1}
         onPageChange={vi.fn()}
         onMovieClick={onMovieClick}
       />,

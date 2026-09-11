@@ -52,6 +52,15 @@ describe("movie-queries", () => {
       });
       expect(result.current.data).toEqual(mockData);
     });
+
+    it("não busca quando enabled é false", () => {
+      const { result } = renderHook(() => useTrendingMovies(1, false), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.fetchStatus).toBe("idle");
+      expect(tmdbClient.get).not.toHaveBeenCalled();
+    });
   });
 
   describe("usePopularMovies", () => {
@@ -104,6 +113,15 @@ describe("movie-queries", () => {
         language: "pt-BR",
         sort_by: "popularity.desc",
       });
+    });
+
+    it("não busca quando enabled é false", () => {
+      const { result } = renderHook(() => usePopularMovies(1, undefined, false), {
+        wrapper: createWrapper(),
+      });
+
+      expect(result.current.fetchStatus).toBe("idle");
+      expect(tmdbClient.get).not.toHaveBeenCalled();
     });
   });
 

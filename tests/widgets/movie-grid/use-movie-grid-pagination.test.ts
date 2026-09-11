@@ -1,54 +1,26 @@
-import { describe, it, expect, vi } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { renderHook } from "@testing-library/react";
 import { useMovieGridPagination } from "@/widgets/movie-grid/use-movie-grid-pagination";
 
 describe("useMovieGridPagination", () => {
-  it("começa na página 1", () => {
-    const { result } = renderHook(() => useMovieGridPagination(5));
+  it("não permite voltar na primeira página", () => {
+    const { result } = renderHook(() => useMovieGridPagination(1, 5));
 
-    expect(result.current.page).toBe(1);
     expect(result.current.canGoPrevious).toBe(false);
     expect(result.current.canGoNext).toBe(true);
   });
 
-  it("avança para a próxima página e chama onPageChange", () => {
-    const onPageChange = vi.fn();
-    const { result } = renderHook(() => useMovieGridPagination(5, onPageChange));
+  it("permite voltar e avançar em uma página intermediária", () => {
+    const { result } = renderHook(() => useMovieGridPagination(3, 5));
 
-    act(() => result.current.goToNextPage());
-
-    expect(result.current.page).toBe(2);
-    expect(onPageChange).toHaveBeenCalledWith(2);
+    expect(result.current.canGoPrevious).toBe(true);
+    expect(result.current.canGoNext).toBe(true);
   });
 
-  it("volta para a página anterior e chama onPageChange", () => {
-    const onPageChange = vi.fn();
-    const { result } = renderHook(() => useMovieGridPagination(5, onPageChange));
+  it("não permite avançar na última página", () => {
+    const { result } = renderHook(() => useMovieGridPagination(5, 5));
 
-    act(() => result.current.goToNextPage());
-    act(() => result.current.goToPreviousPage());
-
-    expect(result.current.page).toBe(1);
-    expect(onPageChange).toHaveBeenLastCalledWith(1);
-  });
-
-  it("não avança além da última página", () => {
-    const onPageChange = vi.fn();
-    const { result } = renderHook(() => useMovieGridPagination(1, onPageChange));
-
-    act(() => result.current.goToNextPage());
-
-    expect(result.current.page).toBe(1);
-    expect(onPageChange).not.toHaveBeenCalled();
-  });
-
-  it("não volta antes da primeira página", () => {
-    const onPageChange = vi.fn();
-    const { result } = renderHook(() => useMovieGridPagination(5, onPageChange));
-
-    act(() => result.current.goToPreviousPage());
-
-    expect(result.current.page).toBe(1);
-    expect(onPageChange).not.toHaveBeenCalled();
+    expect(result.current.canGoPrevious).toBe(true);
+    expect(result.current.canGoNext).toBe(false);
   });
 });
