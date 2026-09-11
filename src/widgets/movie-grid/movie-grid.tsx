@@ -1,3 +1,4 @@
+import { Loader2 } from "lucide-react";
 import type { Movie } from "@/entities/movie";
 import { MovieCard } from "@/widgets/movie-card";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -8,6 +9,8 @@ interface MovieGridProps {
   movies: Movie[];
   isLoading: boolean;
   isError?: boolean;
+  /** Refetch em background (ex.: trocando de página) — mantém a lista atual visível, só sinaliza. */
+  isFetching?: boolean;
   page: number;
   totalPages?: number;
   onPageChange: (page: number) => void;
@@ -18,6 +21,7 @@ export function MovieGrid({
   movies,
   isLoading,
   isError = false,
+  isFetching = false,
   page,
   totalPages = 1,
   onPageChange,
@@ -70,8 +74,9 @@ export function MovieGrid({
         >
           Anterior
         </Button>
-        <span className="text-sm text-muted-foreground">
+        <span className="flex items-center gap-2 text-sm text-muted-foreground">
           Página {page} de {totalPages}
+          {isFetching && <Loader2 className="h-3.5 w-3.5 animate-spin" aria-label="Atualizando" />}
         </span>
         <Button
           variant="outline"

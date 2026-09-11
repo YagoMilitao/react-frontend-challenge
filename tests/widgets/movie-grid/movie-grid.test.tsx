@@ -63,6 +63,28 @@ describe("MovieGrid", () => {
     expect(screen.queryByText("Nenhum filme encontrado")).not.toBeInTheDocument();
   });
 
+  it("exibe um indicador de atualização quando isFetching é true em background", () => {
+    renderWithQueryClient(
+      <MovieGrid
+        movies={[buildMovie()]}
+        isLoading={false}
+        isFetching
+        page={1}
+        onPageChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText("Atualizando")).toBeInTheDocument();
+  });
+
+  it("não exibe o indicador de atualização quando isFetching é false", () => {
+    renderWithQueryClient(
+      <MovieGrid movies={[buildMovie()]} isLoading={false} page={1} onPageChange={vi.fn()} />,
+    );
+
+    expect(screen.queryByLabelText("Atualizando")).not.toBeInTheDocument();
+  });
+
   it("renderiza um card para cada filme", () => {
     const movies = [buildMovie({ id: 1, title: "A" }), buildMovie({ id: 2, title: "B" })];
     renderWithQueryClient(<MovieGrid movies={movies} isLoading={false} page={1} onPageChange={vi.fn()} />);

@@ -64,4 +64,30 @@ describe("LoginPage", () => {
       expect.objectContaining({ description: "curador@cinedash.com" }),
     );
   });
+
+  it("exibe o spinner e desabilita o botão enquanto o login está em andamento", async () => {
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    await user.type(await screen.findByLabelText("E-mail"), "curador@cinedash.com");
+    await user.type(screen.getByLabelText("Senha"), "123456");
+    await user.click(screen.getByRole("button", { name: "Entrar" }));
+
+    expect(await screen.findByRole("button", { name: "Entrando..." })).toBeDisabled();
+    expect(await screen.findByText("Página de descoberta")).toBeInTheDocument();
+  });
+
+  it("alterna a visibilidade da senha ao clicar no botão de mostrar/ocultar", async () => {
+    const user = userEvent.setup();
+    renderLoginPage();
+
+    const passwordInput = await screen.findByLabelText("Senha");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    await user.click(screen.getByRole("button", { name: "Mostrar senha" }));
+    expect(passwordInput).toHaveAttribute("type", "text");
+
+    await user.click(screen.getByRole("button", { name: "Ocultar senha" }));
+    expect(passwordInput).toHaveAttribute("type", "password");
+  });
 });

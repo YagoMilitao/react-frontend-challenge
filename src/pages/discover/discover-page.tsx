@@ -70,6 +70,7 @@ export function DiscoverPage() {
             movies={activeQuery.data?.results ?? []}
             isLoading={activeQuery.isLoading}
             isError={activeQuery.isError}
+            isFetching={activeQuery.isFetching}
             page={page}
             totalPages={activeQuery.data?.total_pages}
             onPageChange={setPage}
