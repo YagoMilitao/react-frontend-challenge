@@ -17,7 +17,12 @@ vi.mock("@/shared/api/http-client", () => ({
   tmdbClient: { get: vi.fn() },
 }));
 
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
 import { tmdbClient } from "@/shared/api/http-client";
+import { toast } from "sonner";
 
 function buildMovies(titles: string[], page = 1, totalPages = 1): PaginatedResponse<Movie> {
   return {
@@ -162,5 +167,22 @@ describe("DiscoverPage", () => {
     await user.click(screen.getByRole("button", { name: /Trending A/ }));
 
     expect(await screen.findByText("Detalhes do filme 1")).toBeInTheDocument();
+  });
+
+  it("exibe estado de erro e um toast quando a busca de filmes falha", async () => {
+    vi.mocked(tmdbClient.get).mockImplementation(async (path: string) => {
+      if (path === "/genre/movie/list") {
+        return { genres: [] };
+      }
+      throw new Error("network error");
+    });
+
+    renderPage();
+
+    expect(await screen.findByText("Não foi possível carregar os filmes")).toBeInTheDocument();
+    expect(toast.error).toHaveBeenCalledWith(
+      "Não foi possível carregar os filmes.",
+      expect.objectContaining({ description: expect.any(String) }),
+    );
   });
 });

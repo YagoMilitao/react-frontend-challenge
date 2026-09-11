@@ -7,6 +7,7 @@ import { useMovieGridPagination } from "./use-movie-grid-pagination";
 interface MovieGridProps {
   movies: Movie[];
   isLoading: boolean;
+  isError?: boolean;
   page: number;
   totalPages?: number;
   onPageChange: (page: number) => void;
@@ -16,6 +17,7 @@ interface MovieGridProps {
 export function MovieGrid({
   movies,
   isLoading,
+  isError = false,
   page,
   totalPages = 1,
   onPageChange,
@@ -29,6 +31,15 @@ export function MovieGrid({
         {Array.from({ length: 10 }).map((_, index) => (
           <Skeleton key={index} className="aspect-[2/3] w-full rounded-lg" />
         ))}
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-destructive/50 py-16 text-center">
+        <p className="text-sm font-medium text-destructive">Não foi possível carregar os filmes</p>
+        <p className="text-sm text-muted-foreground">Verifique sua conexão e tente novamente.</p>
       </div>
     );
   }

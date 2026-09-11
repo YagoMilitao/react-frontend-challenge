@@ -1,9 +1,15 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { WatchlistButton } from "@/features/watchlist/ui/watchlist-button";
 import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
 import type { Movie } from "@/entities/movie";
+
+vi.mock("sonner", () => ({
+  toast: { success: vi.fn(), error: vi.fn() },
+}));
+
+import { toast } from "sonner";
 
 function buildMovie(overrides: Partial<Movie> = {}): Movie {
   return {
@@ -27,6 +33,7 @@ function buildMovie(overrides: Partial<Movie> = {}): Movie {
 describe("WatchlistButton", () => {
   beforeEach(() => {
     useWatchlistStore.setState({ movies: [] });
+    vi.clearAllMocks();
   });
 
   it("indica que o filme não está na lista", () => {
@@ -83,5 +90,30 @@ describe("WatchlistButton", () => {
     render(<WatchlistButton movie={buildMovie()} withLabel />);
 
     expect(screen.getByText("Na minha lista")).toBeInTheDocument();
+  });
+
+  it("exibe um toast de sucesso ao adicionar", async () => {
+    const user = userEvent.setup();
+    render(<WatchlistButton movie={buildMovie()} />);
+
+    await user.click(screen.getByRole("button", { name: "Adicionar à minha lista" }));
+
+    expect(toast.success).toHaveBeenCalledWith(
+      "Adicionado à minha lista.",
+      expect.objectContaining({ description: "Filme Teste" }),
+    );
+  });
+
+  it("exibe um toast de sucesso ao remover", async () => {
+    useWatchlistStore.getState().addMovie(buildMovie());
+    const user = userEvent.setup();
+    render(<WatchlistButton movie={buildMovie()} />);
+
+    await user.click(screen.getByRole("button", { name: "Remover da minha lista" }));
+
+    expect(toast.success).toHaveBeenCalledWith(
+      "Removido da minha lista.",
+      expect.objectContaining({ description: "Filme Teste" }),
+    );
   });
 });

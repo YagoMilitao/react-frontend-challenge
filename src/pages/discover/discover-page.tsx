@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { useTrendingMovies, usePopularMovies, useSearchMovies } from "@/entities/movie";
 import type { Movie } from "@/entities/movie";
 import { DiscoverFilterPanel, useDiscoverFilterStore } from "@/features/discover-filter";
@@ -43,6 +44,14 @@ export function DiscoverPage() {
     activeQuery = popularQuery;
   }
 
+  useEffect(() => {
+    if (activeQuery.isError) {
+      toast.error("Não foi possível carregar os filmes.", {
+        description: "Verifique sua conexão e tente novamente.",
+      });
+    }
+  }, [activeQuery.isError]);
+
   function handleMovieClick(movie: Movie) {
     navigate({ to: "/movie/$id", params: { id: String(movie.id) } });
   }
@@ -60,6 +69,7 @@ export function DiscoverPage() {
           <MovieGrid
             movies={activeQuery.data?.results ?? []}
             isLoading={activeQuery.isLoading}
+            isError={activeQuery.isError}
             page={page}
             totalPages={activeQuery.data?.total_pages}
             onPageChange={setPage}

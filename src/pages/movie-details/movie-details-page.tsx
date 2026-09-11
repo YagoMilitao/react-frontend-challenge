@@ -80,7 +80,7 @@ export function MovieDetailsPage() {
           className="w-full rounded-lg border border-border object-cover"
         />
 
-        <div className="flex flex-col gap-4">
+        <div className="flex min-w-0 flex-col gap-4">
           <div className="flex flex-col gap-1">
             <h1 className="text-3xl font-semibold tracking-tight">{movie.title}</h1>
             {movie.tagline && <p className="italic text-muted-foreground">{movie.tagline}</p>}

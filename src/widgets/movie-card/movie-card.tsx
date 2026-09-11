@@ -1,4 +1,6 @@
 import { Star } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { prefetchMovieDetails } from "@/entities/movie";
 import type { Movie } from "@/entities/movie";
 import { getImageUrl } from "@/shared/lib/image-url";
 import { Card, CardContent } from "@/shared/ui/card";
@@ -12,6 +14,7 @@ interface MovieCardProps {
 
 export function MovieCard({ movie, onClick }: MovieCardProps) {
   const releaseYear = movie.release_date ? movie.release_date.slice(0, 4) : "—";
+  const queryClient = useQueryClient();
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     if (!onClick) return;
@@ -21,12 +24,20 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
     }
   }
 
+  // Prefetch dos detalhes no hover/foco: quando o usuário de fato clicar, a
+  // página de detalhes já encontra o cache quente e renderiza na hora.
+  function handlePrefetch() {
+    prefetchMovieDetails(queryClient, movie.id);
+  }
+
   return (
     <Card
       role={onClick ? "button" : undefined}
       tabIndex={onClick ? 0 : undefined}
       onClick={onClick ? () => onClick(movie) : undefined}
       onKeyDown={handleKeyDown}
+      onMouseEnter={handlePrefetch}
+      onFocus={handlePrefetch}
       className={cn(
         "flex flex-col overflow-hidden transition-transform",
         onClick && "cursor-pointer hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",

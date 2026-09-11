@@ -1,9 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import type { ReactNode } from "react";
 import { MovieGrid } from "@/widgets/movie-grid/movie-grid";
 import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
 import type { Movie } from "@/entities/movie";
+
+vi.mock("@/shared/api/http-client", () => ({
+  tmdbClient: { get: vi.fn().mockResolvedValue({}) },
+}));
 
 function buildMovie(overrides: Partial<Movie> = {}): Movie {
   return {
@@ -24,13 +30,18 @@ function buildMovie(overrides: Partial<Movie> = {}): Movie {
   };
 }
 
+function renderWithQueryClient(ui: ReactNode) {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return render(<QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>);
+}
+
 describe("MovieGrid", () => {
   beforeEach(() => {
     useWatchlistStore.setState({ movies: [] });
   });
 
   it("exibe skeletons durante o carregamento", () => {
-    const { container } = render(
+    const { container } = renderWithQueryClient(
       <MovieGrid movies={[]} isLoading page={1} onPageChange={vi.fn()} />,
     );
 
@@ -38,21 +49,30 @@ describe("MovieGrid", () => {
   });
 
   it("exibe estado vazio quando não há filmes", () => {
-    render(<MovieGrid movies={[]} isLoading={false} page={1} onPageChange={vi.fn()} />);
+    renderWithQueryClient(<MovieGrid movies={[]} isLoading={false} page={1} onPageChange={vi.fn()} />);
 
     expect(screen.getByText("Nenhum filme encontrado")).toBeInTheDocument();
   });
 
+  it("exibe estado de erro quando isError é true, mesmo sem filmes", () => {
+    renderWithQueryClient(
+      <MovieGrid movies={[]} isLoading={false} isError page={1} onPageChange={vi.fn()} />,
+    );
+
+    expect(screen.getByText("Não foi possível carregar os filmes")).toBeInTheDocument();
+    expect(screen.queryByText("Nenhum filme encontrado")).not.toBeInTheDocument();
+  });
+
   it("renderiza um card para cada filme", () => {
     const movies = [buildMovie({ id: 1, title: "A" }), buildMovie({ id: 2, title: "B" })];
-    render(<MovieGrid movies={movies} isLoading={false} page={1} onPageChange={vi.fn()} />);
+    renderWithQueryClient(<MovieGrid movies={movies} isLoading={false} page={1} onPageChange={vi.fn()} />);
 
     expect(screen.getByText("A")).toBeInTheDocument();
     expect(screen.getByText("B")).toBeInTheDocument();
   });
 
   it("exibe a página atual e o total de páginas", () => {
-    render(
+    renderWithQueryClient(
       <MovieGrid
         movies={[buildMovie()]}
         isLoading={false}
@@ -68,7 +88,7 @@ describe("MovieGrid", () => {
   it("chama onPageChange com a próxima página ao clicar em Próxima", async () => {
     const user = userEvent.setup();
     const onPageChange = vi.fn();
-    render(
+    renderWithQueryClient(
       <MovieGrid
         movies={[buildMovie()]}
         isLoading={false}
@@ -86,7 +106,7 @@ describe("MovieGrid", () => {
   it("chama onPageChange com a página anterior ao clicar em Anterior", async () => {
     const user = userEvent.setup();
     const onPageChange = vi.fn();
-    render(
+    renderWithQueryClient(
       <MovieGrid
         movies={[buildMovie()]}
         isLoading={false}
@@ -102,7 +122,7 @@ describe("MovieGrid", () => {
   });
 
   it("desabilita o botão Anterior na primeira página", () => {
-    render(
+    renderWithQueryClient(
       <MovieGrid
         movies={[buildMovie()]}
         isLoading={false}
@@ -116,7 +136,7 @@ describe("MovieGrid", () => {
   });
 
   it("desabilita o botão Próxima na última página", () => {
-    render(
+    renderWithQueryClient(
       <MovieGrid
         movies={[buildMovie()]}
         isLoading={false}
@@ -133,7 +153,7 @@ describe("MovieGrid", () => {
     const user = userEvent.setup();
     const onMovieClick = vi.fn();
     const movie = buildMovie();
-    render(
+    renderWithQueryClient(
       <MovieGrid
         movies={[movie]}
         isLoading={false}

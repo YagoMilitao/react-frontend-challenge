@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useNavigate } from "@tanstack/react-router";
+import { toast } from "sonner";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
@@ -35,6 +36,7 @@ export function LoginPage() {
 
   function onSubmit(values: LoginFormValues) {
     login(values.email);
+    toast.success("Login realizado com sucesso!", { description: values.email });
     navigate({ to: "/discover" });
   }
 

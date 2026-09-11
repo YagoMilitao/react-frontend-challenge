@@ -1,4 +1,5 @@
 import { Bookmark, BookmarkCheck } from "lucide-react";
+import { toast } from "sonner";
 import type { Movie, MovieDetails } from "@/entities/movie";
 import { Button } from "@/shared/ui/button";
 import { cn } from "@/shared/lib/utils";
@@ -26,6 +27,10 @@ export function WatchlistButton({ movie, className, withLabel = false }: Watchli
       onClick={(event) => {
         event.stopPropagation();
         toggleMovie(movie);
+        toast.success(
+          isInWatchlist ? "Removido da minha lista." : "Adicionado à minha lista.",
+          { description: movie.title },
+        );
       }}
     >
       {isInWatchlist ? <BookmarkCheck className="h-4 w-4" /> : <Bookmark className="h-4 w-4" />}
