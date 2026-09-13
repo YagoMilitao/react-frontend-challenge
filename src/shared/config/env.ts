@@ -6,7 +6,6 @@
 function readEnv(key: string, required = true): string {
   const value = import.meta.env[key];
   if (required && !value) {
-    // eslint-disable-next-line no-console
     console.warn(
       `[env] Variável ${key} não definida. Copie .env.example para .env e preencha os valores.`,
     );

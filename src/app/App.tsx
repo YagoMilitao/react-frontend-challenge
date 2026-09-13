@@ -4,7 +4,7 @@ import { Toaster } from "sonner";
 import { queryClient } from "@/app/providers/query-client";
 import { router } from "@/app/router";
 import { ErrorBoundary } from "@/app/error-boundary";
-import { useSyncThemeWithDocument } from "@/features/theme/ui/theme-toggle";
+import { useSyncThemeWithDocument } from "@/features/theme/model/use-sync-theme-with-document";
 
 function ThemedApp() {
   useSyncThemeWithDocument();

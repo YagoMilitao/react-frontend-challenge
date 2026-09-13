@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import { useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
@@ -16,13 +15,7 @@ import {
   CardTitle,
 } from "@/shared/ui/card";
 import { useAuthStore } from "@/features/auth/model/auth-store";
-
-export const loginSchema = z.object({
-  email: z.string().email("Informe um e-mail válido"),
-  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
-});
-
-type LoginFormValues = z.infer<typeof loginSchema>;
+import { loginSchema, type LoginFormValues } from "@/pages/login/login-schema";
 
 // Pequeno atraso artificial para que o estado de loading (e o spinner do botão)
 // tenham algo real para mostrar — sem backend, um submit síncrono seria instantâneo.
