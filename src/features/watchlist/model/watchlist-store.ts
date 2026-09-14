@@ -1,0 +1,110 @@
+import { create } from "zustand";
+import { createJSONStorage, persist } from "zustand/middleware";
+import type { Movie, MovieDetails } from "@/entities/movie";
+import { useAuthStore } from "@/features/auth/model/auth-store";
+import { logger } from "@/shared/lib/logger";
+
+type WatchlistCandidate = Movie | MovieDetails;
+
+interface WatchlistState {
+  movies: Movie[];
+  addMovie: (movie: WatchlistCandidate) => void;
+  removeMovie: (movieId: number) => void;
+  toggleMovie: (movie: WatchlistCandidate) => void;
+  isInWatchlist: (movieId: number) => boolean;
+}
+
+/**
+ * A listagem (Movie) traz `genre_ids`; o endpoint de detalhes do TMDB (MovieDetails)
+ * não traz esse campo, só `genres` (objetos {id, name}). Um filme pode entrar na
+ * watchlist a partir de qualquer uma das duas telas, então normalizamos aqui para
+ * sempre guardar `genre_ids`, que é o que a tabela da watchlist espera.
+ */
+function normalizeMovie(movie: WatchlistCandidate): Movie {
+  const genres = (movie as MovieDetails).genres;
+  const genre_ids = Array.isArray(genres)
+    ? genres.map((genre) => genre.id)
+    : ((movie as Movie).genre_ids ?? []);
+
+  return { ...movie, genre_ids };
+}
+
+/**
+ * Guarda o filme completo (não só o id) para renderizar a tabela da watchlist
+ * sem depender de uma nova consulta à API. Persistido: é o requisito central
+ * da feature — a lista precisa sobreviver ao reload da página.
+ *
+ * A chave no localStorage é namespaced pelo e-mail do usuário logado, para que
+ * duas contas no mesmo navegador não leiam/sobrescrevam a watchlist uma da outra.
+ */
+function watchlistStorageKey() {
+  const email = useAuthStore.getState().user?.email;
+  return `cinedash-watchlist-${email ?? "anonymous"}`;
+}
+
+export const useWatchlistStore = create<WatchlistState>()(
+  persist(
+    (set, get) => ({
+      movies: [],
+      addMovie: (movie) =>
+        set((state) =>
+          state.movies.some((item) => item.id === movie.id)
+            ? state
+            : { movies: [...state.movies, normalizeMovie(movie)] },
+        ),
+      removeMovie: (movieId) =>
+        set((state) => ({ movies: state.movies.filter((item) => item.id !== movieId) })),
+      toggleMovie: (movie) => {
+        const { movies, addMovie, removeMovie } = get();
+        if (movies.some((item) => item.id === movie.id)) {
+          removeMovie(movie.id);
+        } else {
+          addMovie(movie);
+        }
+      },
+      isInWatchlist: (movieId) => get().movies.some((item) => item.id === movieId),
+    }),
+    {
+      name: "cinedash-watchlist",
+      storage: createJSONStorage(() => ({
+        getItem: (_name) => {
+          try {
+            return localStorage.getItem(watchlistStorageKey());
+          } catch (error) {
+            logger.error("[watchlist] Falha ao ler a watchlist do localStorage:", error);
+            return null;
+          }
+        },
+        setItem: (_name, value) => {
+          try {
+            localStorage.setItem(watchlistStorageKey(), value);
+          } catch (error) {
+            logger.error("[watchlist] Falha ao salvar a watchlist no localStorage:", error);
+          }
+        },
+        removeItem: (_name) => {
+          try {
+            localStorage.removeItem(watchlistStorageKey());
+          } catch (error) {
+            logger.error("[watchlist] Falha ao remover a watchlist do localStorage:", error);
+          }
+        },
+      })),
+      onRehydrateStorage: () => (_state, error) => {
+        if (error) {
+          logger.error("[watchlist] Falha ao restaurar a watchlist (dados corrompidos?):", error);
+        }
+      },
+    },
+  ),
+);
+
+// A store é criada uma única vez, então o estado em memória não muda sozinho
+// quando o usuário loga/desloga sem recarregar a página. Rehidrata a partir da
+// chave namespaced correta sempre que o usuário autenticado mudar.
+useAuthStore.subscribe((state, prevState) => {
+  if (state.user?.email !== prevState.user?.email) {
+    useWatchlistStore.setState({ movies: [] });
+    void useWatchlistStore.persist.rehydrate();
+  }
+});
