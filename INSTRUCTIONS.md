@@ -30,10 +30,10 @@ cp .env.example .env
 Edite `.env` e preencha:
 
 ```
-VITE_TMDB_API_READ_TOKEN=<seu-token-aqui>
+TMDB_API_READ_TOKEN=<seu-token-aqui>
 ```
 
-As demais variáveis (`VITE_TMDB_BASE_URL`, `VITE_TMDB_IMAGE_BASE_URL`) já têm defaults corretos e não precisam ser alteradas.
+Sem prefixo `VITE_` de propósito: o token é lido só pelo proxy server-side (`api/tmdb.ts` em produção, middleware do `vite.config.ts` em dev) e nunca chega ao código do client — ver [ARCHITECTURE.md](./ARCHITECTURE.md#token-do-tmdb-nunca-no-bundle-do-client). As demais variáveis (`VITE_TMDB_BASE_URL`, `VITE_TMDB_IMAGE_BASE_URL`) já têm defaults corretos e não precisam ser alteradas.
 
 ### 4. Rodar em desenvolvimento
 
@@ -65,6 +65,26 @@ npm run lint            # ESLint
 - **Minha lista / Watchlist** (`/watchlist`) — adicionar/remover filmes (botão presente no card e na página de detalhes), tabela com TanStack Table (colunas Título, Gênero, Data de Lançamento, Rating, Ações), ordenação por Título/Gênero/Rating, persistida via `localStorage`.
 - **Detalhes do filme** (`/movie/:id`) — sinopse, elenco, trailer do YouTube (quando disponível), botão de adicionar/remover da watchlist.
 - **Tema Dark/Light** — alternável pela navbar, persistido via Zustand.
+
+## Deploy
+
+**Live: [cinedash-five.vercel.app](https://cinedash-five.vercel.app)**
+
+Feito via Vercel CLI:
+
+```bash
+npx vercel login                                       # autenticação (device flow)
+npx vercel                                              # link do projeto + primeiro deploy
+npx vercel env add TMDB_API_READ_TOKEN production      # variável de ambiente server-side (também em preview)
+npx vercel env add TMDB_API_READ_TOKEN preview
+npx vercel --prod                                       # redeploy em produção já com a env var
+```
+
+`TMDB_API_READ_TOKEN` (sem prefixo `VITE_`) fica marcado como "Secret" pela própria Vercel — só a serverless function em `api/tmdb.ts` o lê, o client nunca o vê.
+
+Repositório GitHub conectado ao projeto na Vercel — pushes em `main` disparam deploy de produção automaticamente, e branches/PRs geram preview deployments.
+
+`vercel.json` já traz o rewrite de SPA necessário (ver seção "Deploy" do [README.md](./README.md)).
 
 ## O que ficou de fora / próximos passos
 

@@ -1,20 +1,19 @@
 import { env } from "@/shared/config/env";
 
 /**
- * Cliente HTTP minimalista para a API do TMDB.
- * Encapsula o Bearer token e trata erros comuns (401, 404, 500).
+ * Cliente HTTP minimalista para a API do TMDB, via proxy same-origin
+ * (api/tmdb/[...path].ts). O Bearer token é injetado pelo proxy no servidor —
+ * este cliente nunca o vê nem o envia.
  */
 export class TMDBHttpClient {
-  private baseUrl: string;
-  private readToken: string;
+  private readonly baseUrl: string;
 
-  constructor(baseUrl: string, readToken: string) {
+  constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    this.readToken = readToken;
   }
 
   async get<T>(path: string, params?: Record<string, string | number | boolean>): Promise<T> {
-    const url = new URL(`${this.baseUrl}${path}`);
+    const url = new URL(`${this.baseUrl}${path}`, window.location.origin);
 
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -25,7 +24,6 @@ export class TMDBHttpClient {
     const response = await fetch(url.toString(), {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${this.readToken}`,
         "Content-Type": "application/json",
       },
     });
@@ -44,4 +42,4 @@ export class TMDBHttpClient {
 /**
  * Instância única do cliente HTTP.
  */
-export const tmdbClient = new TMDBHttpClient(env.tmdbBaseUrl, env.tmdbReadToken);
+export const tmdbClient = new TMDBHttpClient(env.tmdbBaseUrl);

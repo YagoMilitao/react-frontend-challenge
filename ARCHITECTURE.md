@@ -109,6 +109,19 @@ Não é 100% de cobertura por escolha — o objetivo foi cobrir regra de negóci
 3. **Debounce vs. paginação, sem re-fetch em cascata.** Trocar filtro/busca precisa resetar a página para 1 (a página 5 de uma busca nova quase certamente não existe), mas resetar a página não pode disparar um fetch extra por si só. Resolvido com um único `useEffect` que observa `[searchQuery, selectedGenres, year, minRating]` e chama `setPage(1)` — o próprio `page` já é dependência das queries, então o fetch acontece uma vez, não duas.
 4. **`ignoreDeprecations` do TypeScript.** Não é da API do TMDB, mas vale registrar: `tsconfig.app.json` tinha `"ignoreDeprecations": "6.0"`, valor inválido para o TypeScript 5.9.3 instalado no projeto (`tsc -b` falhava com `TS5103`). Corrigido para `"5.0"`.
 
+## Token do TMDB nunca no bundle do client
+
+Primeira versão do deploy lia `VITE_TMDB_API_READ_TOKEN` via `import.meta.env` e chamava o TMDB direto do navegador — o Vite embute qualquer variável com prefixo `VITE_` no JS público, então o token acabava extraível do bundle de produção (a própria Vercel recusa marcar uma var `VITE_*` como "Secret" por isso, e exige classificá-la como "Config" explicitamente).
+
+Substituído por um proxy same-origin:
+
+- `api/tmdb.ts` — serverless function (Vercel Edge Runtime) que lê `TMDB_API_READ_TOKEN` (sem prefixo `VITE_`, só disponível no servidor), injeta o header `Authorization: Bearer` e repassa a chamada ao TMDB.
+- `vercel.json` reescreve `/api/tmdb/:path*` → `/api/tmdb?path=:path*`, preservando os demais query params da chamada original.
+- `vite.config.ts` tem um middleware equivalente (`tmdbDevProxy`) só para `npm run dev`, lendo o token do `.env` local via `loadEnv` — mesma URL relativa (`/api/tmdb/...`) funciona em dev e produção, sem código condicional no client.
+- `src/shared/api/http-client.ts` e `src/shared/config/env.ts` não sabem mais de nenhum token; `TMDBHttpClient` só monta a URL relativa e faz o `fetch`, sem header de autenticação.
+
+Optou-se por uma *function* fixa recebendo o caminho via query param (`?path=...`) em vez de uma rota dinâmica catch-all (`api/tmdb/[...path].ts`): o build da Vercel gerava, para esse catch-all, uma regex que só casava um único segmento de path (`([^/]+)`), quebrando qualquer endpoint do TMDB com mais de um segmento (ex.: `/trending/movie/day`, `/search/movie`). O rewrite explícito em `vercel.json` contorna isso e deixa o comportamento auditável no próprio arquivo de config, em vez de depender de inferência automática de rotas.
+
 ## O que faria diferente com mais tempo
 
 - Code-splitting por rota (`React.lazy`) — o bundle de produção ultrapassa o aviso de 500kb do Vite.

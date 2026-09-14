@@ -15,7 +15,7 @@ Dashboard de curadoria e descoberta de filmes.
 ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white)
 ![Vitest](https://img.shields.io/badge/Vitest-tested-6E9F18?logo=vitest&logoColor=white)
 
-[Ver demo](#) · [Reportar bug](https://github.com/YagoMilitao/react-frontend-challenge/issues) · [Documentação de arquitetura](./ARCHITECTURE.md)
+[Ver demo](https://cinedash-five.vercel.app) · [Reportar bug](https://github.com/YagoMilitao/react-frontend-challenge/issues) · [Documentação de arquitetura](./ARCHITECTURE.md)
 
 </div>
 
@@ -124,6 +124,8 @@ Decisões detalhadas, desafios reais encontrados com a API do TMDB e o que seria
 
 ## Deploy
 
+**🔗 Live: [cinedash-five.vercel.app](https://cinedash-five.vercel.app)** — hospedado na Vercel, com deploy automático a cada push em `main` (Git integration nativa da Vercel).
+
 O projeto é uma SPA (Vite + TanStack Router). Qualquer host estático serve, mas **é necessário configurar um rewrite para `index.html`**, senão recarregar a página em uma rota interna (ex.: `/watchlist`) resulta em 404 do próprio host.
 
 <details>
@@ -131,8 +133,17 @@ O projeto é uma SPA (Vite + TanStack Router). Qualquer host estático serve, ma
 
 ```json
 // vercel.json
-{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }
+{
+  "rewrites": [
+    { "source": "/api/tmdb/:path*", "destination": "/api/tmdb?path=:path*" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
+}
 ```
+
+A primeira regra alimenta o proxy de API (`api/tmdb.ts`, ver abaixo); a segunda é o rewrite de SPA, com um lookahead negativo para não interceptar `/api/*`.
+
+Deploy feito via Vercel CLI (`npx vercel`), com o repositório GitHub conectado ao projeto na Vercel para que pushes subsequentes gerem deploy automaticamente (preview em branches/PRs, produção em `main`).
 </details>
 
 <details>
@@ -144,7 +155,7 @@ O projeto é uma SPA (Vite + TanStack Router). Qualquer host estático serve, ma
 ```
 </details>
 
-Lembre-se de configurar `VITE_TMDB_API_READ_TOKEN` nas variáveis de ambiente do host.
+O token do TMDB **não** é enviado ao navegador: `api/tmdb.ts` é uma serverless function (Vercel Edge) que injeta o Bearer token e faz proxy das chamadas — o client só conhece `/api/tmdb/...`, same-origin, sem credencial nenhuma. Configure `TMDB_API_READ_TOKEN` (sem prefixo `VITE_`, propositalmente) nas variáveis de ambiente do host, em Production **e** Preview.
 
 <p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 

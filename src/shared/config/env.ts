@@ -14,8 +14,9 @@ function readEnv(key: string, required = true): string {
 }
 
 export const env = {
-  tmdbReadToken: readEnv("VITE_TMDB_API_READ_TOKEN"),
-  tmdbBaseUrl: readEnv("VITE_TMDB_BASE_URL", false) || "https://api.themoviedb.org/3",
+  // Proxy same-origin (api/tmdb/[...path].ts em prod, middleware do Vite em dev) —
+  // o Bearer token do TMDB fica só no servidor, nunca neste bundle client-side.
+  tmdbBaseUrl: readEnv("VITE_TMDB_BASE_URL", false) || "/api/tmdb",
   tmdbImageBaseUrl:
     readEnv("VITE_TMDB_IMAGE_BASE_URL", false) || "https://image.tmdb.org/t/p",
 };
