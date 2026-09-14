@@ -13,11 +13,15 @@ import { MovieDetailsPage } from "@/pages/movie-details/movie-details-page";
 import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
 import type { Credits, MovieDetails, Videos } from "@/shared/api/tmdb-types";
 
-vi.mock("@/shared/api/http-client", () => ({
-  tmdbClient: { get: vi.fn() },
-}));
+vi.mock("@/shared/api/http-client", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/shared/api/http-client")>();
+  return {
+    ...actual,
+    tmdbClient: { get: vi.fn() },
+  };
+});
 
-import { tmdbClient } from "@/shared/api/http-client";
+import { tmdbClient, TMDBHttpError } from "@/shared/api/http-client";
 
 function buildDetails(overrides: Partial<MovieDetails> = {}): MovieDetails {
   return {
@@ -170,12 +174,20 @@ describe("MovieDetailsPage", () => {
     expect(await screen.findByText("Filme não encontrado")).toBeInTheDocument();
   });
 
-  it("exibe estado de não encontrado quando a API falha", async () => {
-    vi.mocked(tmdbClient.get).mockRejectedValue(new Error("not found"));
+  it("exibe estado de não encontrado quando a API retorna 404", async () => {
+    vi.mocked(tmdbClient.get).mockRejectedValue(new TMDBHttpError(404, "TMDB API Error (404)"));
 
     renderMovieDetailsPage("/movie/999");
 
     expect(await screen.findByText("Filme não encontrado")).toBeInTheDocument();
+  });
+
+  it("exibe estado de erro genérico quando a API falha por outro motivo", async () => {
+    vi.mocked(tmdbClient.get).mockRejectedValue(new Error("network down"));
+
+    renderMovieDetailsPage("/movie/999");
+
+    expect(await screen.findByText("Não foi possível carregar este filme")).toBeInTheDocument();
   });
 
   it("exibe aviso quando o elenco falha ao carregar, sem impedir o resto da página", async () => {

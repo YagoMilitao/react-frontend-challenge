@@ -98,7 +98,10 @@ describe("movie-details-query", () => {
 
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
-      expect(tmdbClient.get).toHaveBeenCalledWith("/movie/42/videos", { language: "pt-BR" });
+      expect(tmdbClient.get).toHaveBeenCalledWith("/movie/42/videos", {
+        language: "pt-BR",
+        include_video_language: "pt,en,null",
+      });
     });
   });
 });
