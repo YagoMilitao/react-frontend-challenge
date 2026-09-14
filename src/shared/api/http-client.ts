@@ -1,4 +1,7 @@
 import { env } from "@/shared/config/env";
+import { logger } from "@/shared/lib/logger";
+
+const REQUEST_TIMEOUT_MS = 10_000;
 
 /**
  * Erro de resposta HTTP da API do TMDB, com o status code preservado para que
@@ -41,10 +44,14 @@ export class TMDBHttpClient {
       headers: {
         "Content-Type": "application/json",
       },
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = await response.json().catch((parseError: unknown) => {
+        logger.error("[http-client] Corpo de erro do TMDB não é JSON válido:", parseError);
+        return {};
+      });
       throw new TMDBHttpError(
         response.status,
         `TMDB API Error (${response.status}): ${errorData.status_message || response.statusText}`,

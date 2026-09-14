@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-router";
 import { useAuthStore } from "@/features/auth/model/auth-store";
 import { AppNav } from "@/widgets/app-nav";
+import { ErrorBoundary } from "@/app/error-boundary";
 import { LoginPage } from "@/pages/login/login-page";
 import { DiscoverPage } from "@/pages/discover/discover-page";
 import { WatchlistPage } from "@/pages/watchlist/watchlist-page";
@@ -47,7 +48,9 @@ const appLayoutRoute = createRoute({
   component: () => (
     <div className="min-h-screen bg-background">
       <AppNav />
-      <Outlet />
+      <ErrorBoundary>
+        <Outlet />
+      </ErrorBoundary>
     </div>
   ),
 });

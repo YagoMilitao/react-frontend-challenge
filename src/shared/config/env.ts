@@ -1,3 +1,5 @@
+import { logger } from "@/shared/lib/logger";
+
 /**
  * Ponto único de leitura das variáveis de ambiente.
  * Falha cedo (em desenvolvimento) se algo obrigatório não estiver configurado,
@@ -6,7 +8,7 @@
 function readEnv(key: string, required = true): string {
   const value = import.meta.env[key];
   if (required && !value) {
-    console.warn(
+    logger.warn(
       `[env] Variável ${key} não definida. Copie .env.example para .env e preencha os valores.`,
     );
   }

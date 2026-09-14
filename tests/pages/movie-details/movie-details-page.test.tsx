@@ -177,4 +177,32 @@ describe("MovieDetailsPage", () => {
 
     expect(await screen.findByText("Filme não encontrado")).toBeInTheDocument();
   });
+
+  it("exibe aviso quando o elenco falha ao carregar, sem impedir o resto da página", async () => {
+    vi.mocked(tmdbClient.get).mockImplementation(async (path: string) => {
+      if (path === "/movie/42") return buildDetails();
+      if (path === "/movie/42/credits") throw new Error("credits failed");
+      if (path === "/movie/42/videos") return buildVideos();
+      throw new Error(`unexpected path in test: ${path}`);
+    });
+
+    renderMovieDetailsPage("/movie/42");
+
+    expect(await screen.findByText("Não foi possível carregar o elenco.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Filme Detalhado" })).toBeInTheDocument();
+  });
+
+  it("exibe aviso quando o trailer falha ao carregar, sem impedir o resto da página", async () => {
+    vi.mocked(tmdbClient.get).mockImplementation(async (path: string) => {
+      if (path === "/movie/42") return buildDetails();
+      if (path === "/movie/42/credits") return buildCredits();
+      if (path === "/movie/42/videos") throw new Error("videos failed");
+      throw new Error(`unexpected path in test: ${path}`);
+    });
+
+    renderMovieDetailsPage("/movie/42");
+
+    expect(await screen.findByText("Não foi possível carregar o trailer.")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Filme Detalhado" })).toBeInTheDocument();
+  });
 });

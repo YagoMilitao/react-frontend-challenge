@@ -1,5 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Button } from "@/shared/ui/button";
+import { logger } from "@/shared/lib/logger";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -23,7 +24,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Erro não tratado capturado pelo ErrorBoundary:", error, errorInfo);
+    logger.error("Erro não tratado capturado pelo ErrorBoundary:", error, errorInfo);
   }
 
   override render() {

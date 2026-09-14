@@ -139,6 +139,10 @@ export function MovieDetailsPage() {
           </p>
         </div>
 
+        {creditsQuery.isError && (
+          <p className="text-sm text-muted-foreground">Não foi possível carregar o elenco.</p>
+        )}
+
         {cast.length > 0 && (
           <div className="flex flex-col gap-2">
             <h2 className="text-lg font-semibold">Elenco</h2>
@@ -169,6 +173,10 @@ export function MovieDetailsPage() {
               })}
             </div>
           </div>
+        )}
+
+        {videosQuery.isError && (
+          <p className="text-sm text-muted-foreground">Não foi possível carregar o trailer.</p>
         )}
 
         {trailer && (

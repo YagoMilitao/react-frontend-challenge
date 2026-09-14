@@ -49,6 +49,7 @@ Dashboard de curadoria e descoberta de filmes.
 - 🎞️ Página de detalhes com elenco, sinopse e trailer
 - 🌗 Tema claro/escuro persistido
 - 🔔 Feedback visual completo: skeletons, estados de erro e toasts
+- 🛡️ Tratamento de erro em profundidade: proxy resiliente (timeout + fallback), storage à prova de falha e Error Boundary por rota — detalhes em [ARCHITECTURE.md](./ARCHITECTURE.md#tratamento-de-erros-e-logging)
 
 <p align="right">(<a href="#readme-top">voltar ao topo</a>)</p>
 

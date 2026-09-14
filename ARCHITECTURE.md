@@ -122,6 +122,17 @@ Substituído por um proxy same-origin:
 
 Optou-se por uma *function* fixa recebendo o caminho via query param (`?path=...`) em vez de uma rota dinâmica catch-all (`api/tmdb/[...path].ts`): o build da Vercel gerava, para esse catch-all, uma regex que só casava um único segmento de path (`([^/]+)`), quebrando qualquer endpoint do TMDB com mais de um segmento (ex.: `/trending/movie/day`, `/search/movie`). O rewrite explícito em `vercel.json` contorna isso e deixa o comportamento auditável no próprio arquivo de config, em vez de depender de inferência automática de rotas.
 
+## Tratamento de erros e logging
+
+Erro de rede/API não é caso excepcional aqui — é esperado que a API do TMDB falhe ou demore, então cada camada trata isso explicitamente em vez de deixar a exceção se propagar:
+
+- **Proxy TMDB (`api/tmdb.ts` e o middleware equivalente do `vite.config.ts`)**: o `fetch` ao TMDB tem `AbortSignal.timeout(10s)` e roda dentro de um `try/catch` — uma falha de rede ou timeout responde com um JSON de erro (`502`/`504`) em vez de estourar uma exceção não tratada na function. Respostas não-2xx do TMDB são logadas (`status_message`, path — nunca o token) para ficarem visíveis nos logs da Vercel/terminal do Vite.
+- **Cliente HTTP (`shared/api/http-client.ts`)**: mesmo timeout de 10s no client; `TMDBHttpError` carrega o status code para o chamador diferenciar 404 (recurso inexistente) de erro de servidor.
+- **Watchlist (`features/watchlist/model/watchlist-store.ts`)**: o adapter de storage do `persist` (namespaced por e-mail do usuário) envolve `getItem`/`setItem`/`removeItem` em `try/catch` — `QuotaExceededError` ou `localStorage` bloqueado (Safari privado, por exemplo) degrada silenciosamente em vez de derrubar a store. `onRehydrateStorage` captura erro de JSON corrompido na hidratação inicial pelo mesmo motivo.
+- **Error Boundary por seção de rotas (`app/router.tsx`)**: além do `ErrorBoundary` que envolve a aplicação inteira (`app/App.tsx`), a rota de layout autenticado também tem um `ErrorBoundary` ao redor do `<Outlet />` — um crash de render numa página específica (ex.: um dado com formato inesperado) derruba só a área da página, mantendo a navegação (`AppNav`) visível, em vez de branquear a tela toda.
+- **Logger (`shared/lib/logger.ts`)**: wrapper fino sobre `console` usado no client — `logger.warn` só loga em dev (ex.: variável de ambiente ausente), `logger.error` sempre loga (erros de runtime que ajudam a depurar problemas reportados por usuários). Ponto único para trocar por um serviço de error tracking depois, sem caçar `console.*` espalhado pelo código.
+- Erros de `credits`/`videos` na página de detalhes (`pages/movie-details/movie-details-page.tsx`) são exibidos como aviso textual ("Não foi possível carregar o elenco/trailer") em vez de simplesmente esconder a seção sem explicação — a falha de uma dessas queries não impede a página de detalhes de renderizar o resto.
+
 ## O que faria diferente com mais tempo
 
 - Code-splitting por rota (`React.lazy`) — o bundle de produção ultrapassa o aviso de 500kb do Vite.

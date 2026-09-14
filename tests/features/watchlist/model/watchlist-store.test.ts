@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useWatchlistStore } from "@/features/watchlist/model/watchlist-store";
 import type { Movie, MovieDetails } from "@/entities/movie";
 
@@ -108,5 +108,44 @@ describe("watchlist-store", () => {
     useWatchlistStore.getState().addMovie(buildMovieDetails());
 
     expect(useWatchlistStore.getState().movies[0].genre_ids).toEqual([28]);
+  });
+
+  it("não quebra a store quando o localStorage estoura a cota ao salvar", () => {
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("Quota exceeded", "QuotaExceededError");
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => useWatchlistStore.getState().addMovie(buildMovie())).not.toThrow();
+    expect(useWatchlistStore.getState().movies).toHaveLength(1);
+    expect(errorSpy).toHaveBeenCalled();
+
+    setItemSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it("não quebra a store quando o localStorage lança ao ler (ex.: acesso bloqueado)", () => {
+    const getItemSpy = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new DOMException("Access denied", "SecurityError");
+    });
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    expect(() => useWatchlistStore.persist.rehydrate()).not.toThrow();
+    expect(errorSpy).toHaveBeenCalled();
+
+    getItemSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it("loga (sem quebrar) quando o valor persistido é JSON inválido", async () => {
+    localStorage.setItem("cinedash-watchlist-anonymous", "{isto não é json");
+    const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    await useWatchlistStore.persist.rehydrate();
+
+    expect(errorSpy).toHaveBeenCalled();
+
+    localStorage.removeItem("cinedash-watchlist-anonymous");
+    errorSpy.mockRestore();
   });
 });

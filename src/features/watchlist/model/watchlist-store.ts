@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import type { Movie, MovieDetails } from "@/entities/movie";
 import { useAuthStore } from "@/features/auth/model/auth-store";
+import { logger } from "@/shared/lib/logger";
 
 type WatchlistCandidate = Movie | MovieDetails;
 
@@ -66,10 +67,34 @@ export const useWatchlistStore = create<WatchlistState>()(
     {
       name: "cinedash-watchlist",
       storage: createJSONStorage(() => ({
-        getItem: (_name) => localStorage.getItem(watchlistStorageKey()),
-        setItem: (_name, value) => localStorage.setItem(watchlistStorageKey(), value),
-        removeItem: (_name) => localStorage.removeItem(watchlistStorageKey()),
+        getItem: (_name) => {
+          try {
+            return localStorage.getItem(watchlistStorageKey());
+          } catch (error) {
+            logger.error("[watchlist] Falha ao ler a watchlist do localStorage:", error);
+            return null;
+          }
+        },
+        setItem: (_name, value) => {
+          try {
+            localStorage.setItem(watchlistStorageKey(), value);
+          } catch (error) {
+            logger.error("[watchlist] Falha ao salvar a watchlist no localStorage:", error);
+          }
+        },
+        removeItem: (_name) => {
+          try {
+            localStorage.removeItem(watchlistStorageKey());
+          } catch (error) {
+            logger.error("[watchlist] Falha ao remover a watchlist do localStorage:", error);
+          }
+        },
       })),
+      onRehydrateStorage: () => (_state, error) => {
+        if (error) {
+          logger.error("[watchlist] Falha ao restaurar a watchlist (dados corrompidos?):", error);
+        }
+      },
     },
   ),
 );

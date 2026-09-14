@@ -60,15 +60,39 @@ export default async function handler(request: Request): Promise<Response> {
   const tmdbUrl = new URL(`${TMDB_BASE_URL}/${path}`);
   tmdbUrl.search = requestUrl.searchParams.toString();
 
-  const tmdbResponse = await fetch(tmdbUrl.toString(), {
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const TMDB_TIMEOUT_MS = 10_000;
 
-  return new Response(tmdbResponse.body, {
-    status: tmdbResponse.status,
-    headers: { "Content-Type": "application/json" },
-  });
+  try {
+    const tmdbResponse = await fetch(tmdbUrl.toString(), {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      signal: AbortSignal.timeout(TMDB_TIMEOUT_MS),
+    });
+
+    if (!tmdbResponse.ok) {
+      console.error(`[api/tmdb] TMDB respondeu ${tmdbResponse.status} para path=${path}`);
+    }
+
+    return new Response(tmdbResponse.body, {
+      status: tmdbResponse.status,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    const isTimeout = error instanceof Error && error.name === "TimeoutError";
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    console.error(
+      `[api/tmdb] Falha ao contatar TMDB para path=${path}: ${isTimeout ? "timeout" : errorMessage}`,
+    );
+
+    return new Response(
+      JSON.stringify({
+        status_message: isTimeout
+          ? "Tempo de resposta do TMDB esgotado."
+          : "Não foi possível contatar o TMDB.",
+      }),
+      { status: isTimeout ? 504 : 502, headers: { "Content-Type": "application/json" } },
+    );
+  }
 }
