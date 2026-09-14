@@ -9,29 +9,34 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
  * Bearer token no servidor do Vite em vez de expô-lo no client via import.meta.env.
  */
 function tmdbDevProxy(token: string) {
+  const middleware: import("vite").Connect.NextHandleFunction = async (req, res) => {
+    if (!token) {
+      res.statusCode = 500;
+      res.setHeader("Content-Type", "application/json");
+      res.end(
+        JSON.stringify({
+          status_message: "TMDB_API_READ_TOKEN não definido. Preencha o .env.",
+        }),
+      );
+      return;
+    }
+
+    const tmdbResponse = await fetch(`${TMDB_BASE_URL}${req.url}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    res.statusCode = tmdbResponse.status;
+    res.setHeader("Content-Type", "application/json");
+    res.end(Buffer.from(await tmdbResponse.arrayBuffer()));
+  };
+
   return {
     name: "tmdb-dev-proxy",
     configureServer(server: import("vite").ViteDevServer) {
-      server.middlewares.use("/api/tmdb", async (req, res) => {
-        if (!token) {
-          res.statusCode = 500;
-          res.setHeader("Content-Type", "application/json");
-          res.end(
-            JSON.stringify({
-              status_message: "TMDB_API_READ_TOKEN não definido. Preencha o .env.",
-            }),
-          );
-          return;
-        }
-
-        const tmdbResponse = await fetch(`${TMDB_BASE_URL}${req.url}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-
-        res.statusCode = tmdbResponse.status;
-        res.setHeader("Content-Type", "application/json");
-        res.end(Buffer.from(await tmdbResponse.arrayBuffer()));
-      });
+      server.middlewares.use("/api/tmdb", middleware);
+    },
+    configurePreviewServer(server: import("vite").PreviewServer) {
+      server.middlewares.use("/api/tmdb", middleware);
     },
   };
 }

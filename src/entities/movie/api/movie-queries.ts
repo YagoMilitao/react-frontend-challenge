@@ -47,17 +47,33 @@ export function usePopularMovies(page = 1, filters?: MovieFilter, enabled = true
   });
 }
 
+function matchesFilters(movie: Movie, filters?: MovieFilter) {
+  if (filters?.selectedGenres && filters.selectedGenres.length > 0) {
+    const hasGenre = filters.selectedGenres.some((genreId) => movie.genre_ids.includes(genreId));
+    if (!hasGenre) return false;
+  }
+  if (filters?.minRating && movie.vote_average < filters.minRating) {
+    return false;
+  }
+  return true;
+}
+
 export function useSearchMovies(query: string, filters?: MovieFilter, page = 1) {
   return useQuery({
     queryKey: ["movies", "search", query, page, filters],
     queryFn: () =>
-      tmdbClient.get<PaginatedResponse<Movie>>("/search/movie", {
-        query,
-        page,
-        language: "pt-BR",
-        include_adult: false,
-        ...buildDiscoverParams(filters),
-      }),
+      tmdbClient
+        .get<PaginatedResponse<Movie>>("/search/movie", {
+          query,
+          page,
+          language: "pt-BR",
+          include_adult: false,
+          ...(filters?.year ? { primary_release_year: filters.year } : {}),
+        })
+        .then((res) => ({
+          ...res,
+          results: res.results.filter((movie) => matchesFilters(movie, filters)),
+        })),
     enabled: query.length > 2,
     placeholderData: keepPreviousData,
   });

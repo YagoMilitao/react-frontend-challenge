@@ -1,6 +1,7 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { createJSONStorage, persist } from "zustand/middleware";
 import type { Movie, MovieDetails } from "@/entities/movie";
+import { useAuthStore } from "@/features/auth/model/auth-store";
 
 type WatchlistCandidate = Movie | MovieDetails;
 
@@ -31,7 +32,15 @@ function normalizeMovie(movie: WatchlistCandidate): Movie {
  * Guarda o filme completo (não só o id) para renderizar a tabela da watchlist
  * sem depender de uma nova consulta à API. Persistido: é o requisito central
  * da feature — a lista precisa sobreviver ao reload da página.
+ *
+ * A chave no localStorage é namespaced pelo e-mail do usuário logado, para que
+ * duas contas no mesmo navegador não leiam/sobrescrevam a watchlist uma da outra.
  */
+function watchlistStorageKey() {
+  const email = useAuthStore.getState().user?.email;
+  return `cinedash-watchlist-${email ?? "anonymous"}`;
+}
+
 export const useWatchlistStore = create<WatchlistState>()(
   persist(
     (set, get) => ({
@@ -54,6 +63,23 @@ export const useWatchlistStore = create<WatchlistState>()(
       },
       isInWatchlist: (movieId) => get().movies.some((item) => item.id === movieId),
     }),
-    { name: "cinedash-watchlist" },
+    {
+      name: "cinedash-watchlist",
+      storage: createJSONStorage(() => ({
+        getItem: (_name) => localStorage.getItem(watchlistStorageKey()),
+        setItem: (_name, value) => localStorage.setItem(watchlistStorageKey(), value),
+        removeItem: (_name) => localStorage.removeItem(watchlistStorageKey()),
+      })),
+    },
   ),
 );
+
+// A store é criada uma única vez, então o estado em memória não muda sozinho
+// quando o usuário loga/desloga sem recarregar a página. Rehidrata a partir da
+// chave namespaced correta sempre que o usuário autenticado mudar.
+useAuthStore.subscribe((state, prevState) => {
+  if (state.user?.email !== prevState.user?.email) {
+    useWatchlistStore.setState({ movies: [] });
+    void useWatchlistStore.persist.rehydrate();
+  }
+});

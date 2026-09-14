@@ -92,7 +92,7 @@ Nenhuma alternativa à stack obrigatória foi usada — ver justificativas de ca
 git clone https://github.com/YagoMilitao/react-frontend-challenge.git
 cd react-frontend-challenge
 npm install
-cp .env.example .env   # preencha VITE_TMDB_API_READ_TOKEN
+cp .env.example .env   # preencha TMDB_API_READ_TOKEN
 npm run dev
 ```
 

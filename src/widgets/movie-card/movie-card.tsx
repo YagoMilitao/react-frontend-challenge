@@ -20,6 +20,7 @@ export function MovieCard({ movie, onClick }: MovieCardProps) {
 
   function handleKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
     if (!onClick) return;
+    if (event.target !== event.currentTarget) return;
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       onClick(movie);

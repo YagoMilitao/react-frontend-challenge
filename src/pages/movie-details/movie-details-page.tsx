@@ -2,6 +2,7 @@ import { Link, useParams } from "@tanstack/react-router";
 import { ArrowLeft, PlayCircle, Star } from "lucide-react";
 import { useMovieCredits, useMovieDetails, useMovieVideos } from "@/entities/movie";
 import { WatchlistButton } from "@/features/watchlist";
+import { TMDBHttpError } from "@/shared/api/http-client";
 import { getImageUrl } from "@/shared/lib/image-url";
 import { ImagePlaceholder } from "@/shared/ui/image-placeholder";
 import { Skeleton } from "@/shared/ui/skeleton";
@@ -45,6 +46,16 @@ function NotFoundState() {
   );
 }
 
+function ErrorState() {
+  return (
+    <div className="container flex flex-col items-center justify-center gap-3 py-24 text-center">
+      <p className="text-lg font-medium">Não foi possível carregar este filme</p>
+      <p className="text-sm text-muted-foreground">Tente novamente mais tarde.</p>
+      <BackLink />
+    </div>
+  );
+}
+
 export function MovieDetailsPage() {
   const params = useParams({ strict: false });
   const movieId = Number(params.id);
@@ -62,7 +73,12 @@ export function MovieDetailsPage() {
     return <LoadingState />;
   }
 
-  if (detailsQuery.isError || !detailsQuery.data) {
+  if (detailsQuery.isError) {
+    const isNotFound = detailsQuery.error instanceof TMDBHttpError && detailsQuery.error.status === 404;
+    return isNotFound ? <NotFoundState /> : <ErrorState />;
+  }
+
+  if (!detailsQuery.data) {
     return <NotFoundState />;
   }
 

@@ -1,6 +1,21 @@
 import { env } from "@/shared/config/env";
 
 /**
+ * Erro de resposta HTTP da API do TMDB, com o status code preservado para que
+ * chamadores possam diferenciar, por exemplo, 404 (recurso inexistente) de
+ * falhas de rede/servidor (5xx), que são recuperáveis via retry.
+ */
+export class TMDBHttpError extends Error {
+  constructor(
+    public readonly status: number,
+    message: string,
+  ) {
+    super(message);
+    this.name = "TMDBHttpError";
+  }
+}
+
+/**
  * Cliente HTTP minimalista para a API do TMDB, via proxy same-origin
  * (api/tmdb/[...path].ts). O Bearer token é injetado pelo proxy no servidor —
  * este cliente nunca o vê nem o envia.
@@ -30,7 +45,8 @@ export class TMDBHttpClient {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(
+      throw new TMDBHttpError(
+        response.status,
         `TMDB API Error (${response.status}): ${errorData.status_message || response.statusText}`,
       );
     }

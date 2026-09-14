@@ -44,7 +44,14 @@ export function useMovieCredits(movieId: number | null) {
 export function useMovieVideos(movieId: number | null) {
   return useQuery({
     queryKey: ["movies", "videos", movieId],
-    queryFn: () => tmdbClient.get<Videos>(`/movie/${movieId}/videos`, { language: "pt-BR" }),
+    // `include_video_language` faz a API incluir vídeos em pt-BR/en-US/sem idioma
+    // na mesma resposta — sem isso, filmes sem trailer cadastrado em pt-BR
+    // retornariam uma lista vazia mesmo havendo trailer em outro idioma.
+    queryFn: () =>
+      tmdbClient.get<Videos>(`/movie/${movieId}/videos`, {
+        language: "pt-BR",
+        include_video_language: "pt,en,null",
+      }),
     enabled: Boolean(movieId),
   });
 }

@@ -27,15 +27,21 @@ export function DiscoverPage() {
   const isSearching = searchQuery.trim().length >= MIN_SEARCH_LENGTH;
   const hasFilters = selectedGenres.length > 0 || year !== undefined || minRating !== undefined;
 
-  // Reseta a página ao trocar filtro ou busca — resultados de uma consulta diferente
-  // não fazem sentido continuar na mesma página da consulta anterior.
-  useEffect(() => {
+  // Reseta a página ao trocar filtro ou busca durante a renderização, antes que os
+  // hooks de query abaixo disparem uma requisição com a página antiga.
+  const [prevSearchQuery, setPrevSearchQuery] = useState(searchQuery);
+  const [prevFilters, setPrevFilters] = useState(filters);
+  let currentPage = page;
+  if (searchQuery !== prevSearchQuery || filters !== prevFilters) {
+    setPrevSearchQuery(searchQuery);
+    setPrevFilters(filters);
+    currentPage = 1;
     setPage(1);
-  }, [searchQuery, selectedGenres, year, minRating]);
+  }
 
-  const trendingQuery = useTrendingMovies(page, !isSearching && !hasFilters);
-  const popularQuery = usePopularMovies(page, filters, !isSearching && hasFilters);
-  const searchResultsQuery = useSearchMovies(searchQuery, filters, page);
+  const trendingQuery = useTrendingMovies(currentPage, !isSearching && !hasFilters);
+  const popularQuery = usePopularMovies(currentPage, filters, !isSearching && hasFilters);
+  const searchResultsQuery = useSearchMovies(searchQuery, filters, currentPage);
 
   let activeQuery = trendingQuery;
   if (isSearching) {
@@ -71,7 +77,7 @@ export function DiscoverPage() {
             isLoading={activeQuery.isLoading}
             isError={activeQuery.isError}
             isFetching={activeQuery.isFetching}
-            page={page}
+            page={currentPage}
             totalPages={activeQuery.data?.total_pages}
             onPageChange={setPage}
             onMovieClick={handleMovieClick}
